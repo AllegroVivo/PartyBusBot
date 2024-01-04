@@ -44,11 +44,11 @@ class Database:
 
 ################################################################################
     def _connect(self) -> None:
-
-        # Look at me being fancy with an assert statement.
-        assert self.__connection is None, "Database connection already exists!"
-
+        
         print("Connecting to Database...")
+        
+        self.__connection = None
+        self._cursor = None
 
         load_dotenv()
         self.__connection = psycopg2.connect(

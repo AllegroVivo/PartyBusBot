@@ -21,12 +21,8 @@ class Trainer:
     
     __slots__ = (
         "_parent",
-        "_id",
-        "_user",
-        "_name",
         "_qualifications",
         # "_trainees",
-        "_notes",
     )
     
 ################################################################################
@@ -63,9 +59,9 @@ class Trainer:
     
 ################################################################################
     @property
-    def id(self) -> str:
+    def name(self) -> str:
         
-        return self._id
+        return self._parent.name
     
 ################################################################################
     @property

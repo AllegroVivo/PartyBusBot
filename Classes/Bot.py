@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Optional, TYPE_CHECKING
 
-from discord import Attachment, Bot, Interaction, Role, User
+from discord import Attachment, Bot, Interaction, Role, User, TextChannel
 
 from Classes.Positions import PositionManager
 from Classes.Training import TrainingManager
@@ -74,14 +74,9 @@ class PartyBusBot(Bot):
         await self.training_manager.trainer_status(interaction, user)
         
 ################################################################################
-    async def add_trainee(self, interaction: Interaction) -> None:
+    async def tuser_status(self, interaction: Interaction) -> None:
         
-        await self.training_manager.add_trainee(interaction)
-        
-################################################################################
-    async def user_status(self, interaction: Interaction) -> None:
-        
-        await self.training_manager.trainee_status(interaction)
+        await self.training_manager.tuser_status(interaction)
 
 ################################################################################
     def get_position(self, pos_id: str) -> Optional[Position]:
@@ -99,8 +94,13 @@ class PartyBusBot(Bot):
         await self.training_manager.update_training(interaction, trainee)
 
 ################################################################################
-    async def tuser_status(self, interaction: Interaction, user: User) -> None:
+    async def tuser_admin_status(self, interaction: Interaction, user: User) -> None:
         
-        await self.training_manager.tuser_status(interaction, user)
+        await self.training_manager.tuser_admin_status(interaction, user)
+
+################################################################################
+    async def post_signup_message(self, interaction: Interaction, channel: TextChannel) -> None:
         
+        await self.training_manager.post_signup_message(interaction, channel)
+
 ################################################################################

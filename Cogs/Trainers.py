@@ -25,8 +25,8 @@ class Trainers(Cog):
     
 ################################################################################
     @trainers.command(
-        name="status",
-        description="View and edit the status of a trainer."
+        name="update_trainee",
+        description="Update a trainee's training status."
     )
     async def trainer_status(
         self, 
@@ -39,7 +39,7 @@ class Trainers(Cog):
         )
     ) -> None:
         
-        await self.bot.trainer_status(ctx.interaction, user)
+        await self.bot.update_training(ctx.interaction, user)
 
 ################################################################################
 def setup(bot: "PartyBusBot") -> None:

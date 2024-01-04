@@ -39,8 +39,26 @@ class Admin(Cog):
         )
     ) -> None:
         
-        await self.bot.tuser_status(ctx.interaction, user)
+        await self.bot.tuser_admin_status(ctx.interaction, user)
 
+################################################################################
+    @admin.command(
+        name="post_signup",
+        description="Post the trainer signup message."
+    )
+    async def post_signup_message(
+        self, 
+        ctx: ApplicationContext,
+        channel: Option(
+            SlashCommandOptionType.channel,
+            name="channel",
+            description="The channel to set as the trainer signup message channel.",
+            required=True
+        )
+    ) -> None:
+        
+        await self.bot.post_signup_message(ctx.interaction, channel)
+        
 ################################################################################
 def setup(bot: "PartyBusBot") -> None:
 

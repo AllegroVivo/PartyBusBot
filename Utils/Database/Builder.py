@@ -13,9 +13,10 @@ class DatabaseBuilder(DBWorkerBranch):
 
         self.build_positions_tables()
         self.build_training_tables()
+        self.build_messages_table()
         
         print("Database lookin' good!")
-    
+        
 ################################################################################
     def build_positions_tables(self) -> None:
 
@@ -87,6 +88,31 @@ class DatabaseBuilder(DBWorkerBranch):
                 "position TEXT,"
                 "trainer BIGINT"
                 ");"
+            )
+            db.execute(
+                "CREATE TABLE IF NOT EXISTS requirement_overrides ("
+                "user_id BIGINT,"
+                "training_id TEXT,"
+                "requirement_id TEXT,"
+                "level INTEGER"
+                ");"
+            )
+            
+################################################################################
+    def build_messages_table(self) -> None:
+        
+        with self.database as db:
+            db.execute(
+                "CREATE TABLE IF NOT EXISTS messages ("
+                "_id TEXT PRIMARY KEY,"
+                "channel_id BIGINT,"
+                "message_id BIGINT"
+                ");"
+            )
+            
+            db.execute(
+                "INSERT INTO messages (_id) VALUES ('trainer_signup_message') "
+                "ON CONFLICT DO NOTHING;"
             )
             
 ################################################################################

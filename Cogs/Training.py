@@ -27,40 +27,12 @@ class Training(Cog):
         
 ################################################################################
     @training.command(
-        name="status",
+        name="profile",
         description="View and edit your training registration profile & status."
     )
-    async def trainee_status(self,  ctx: ApplicationContext) -> None:
+    async def training_profile(self, ctx: ApplicationContext) -> None:
         
-        await self.bot.user_status(ctx.interaction)
-
-################################################################################
-    @training.command(
-        name="update",
-        description="Update an individual's training progress."
-    )
-    async def update_training(
-        self, 
-        ctx: ApplicationContext,
-        trainee: Option(
-            SlashCommandOptionType.user,
-            name="user",
-            description="The user whose training(s) to update.",
-            required=True
-        )
-    ) -> None:
-        
-        await self.bot.update_training(ctx.interaction, trainee)
-        
-################################################################################
-    @training.command(
-        name="test",
-        description="Test command."
-    )
-    async def test(self, ctx: ApplicationContext) -> None:
-        
-        trainee = self.bot.training_manager.get_trainee_by_user_id(ctx.author.id)
-        await trainee.add_schedule(ctx.interaction)
+        await self.bot.tuser_status(ctx.interaction)
         
 ################################################################################
 def setup(bot: "PartyBusBot") -> None:

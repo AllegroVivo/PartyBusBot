@@ -1,18 +1,18 @@
 from __future__ import annotations
 
-from discord import Interaction, User, NotFound
-from typing import TYPE_CHECKING, List, Optional, Tuple, Any, Dict, Union
+from typing import TYPE_CHECKING, List, Optional, Any, Dict
 
-from Classes.Training.Qualification import Qualification
+from discord import Interaction, User, TextChannel
+
+from Classes.Training.SignUpMessage import SignUpMessage
+from Classes.Training.TUser import TUser
 from Classes.Training.Trainee import Trainee
 from Classes.Training.Trainer import Trainer
-from Classes.Training.Training import Training
-from Classes.Training.TUser import TUser
-from UI import TrainerStatusView, TraineeStatusView, UpdateTraineeView, TUserStatusView
-from Utils import TrainerExistsError, TrainerNotFoundError, TraineeExistsError, TraineeNotFoundError
+from UI import TrainerStatusView, TUserStatusView, TUserAdminStatusView
+from Utils import TraineeExistsError, TraineeNotFoundError
 
 if TYPE_CHECKING:
-    from Classes import PartyBusBot, Position
+    from Classes import PartyBusBot, Position, Training
 ################################################################################
 
 __all__ = ("TrainingManager",)
@@ -23,13 +23,16 @@ class TrainingManager:
     __slots__ = (
         "_state",
         "_tusers",
+        "_message",
     )
 
 ################################################################################
     def __init__(self, state: PartyBusBot) -> None:
 
         self._state: PartyBusBot = state
+        
         self._tusers: List[TUser] = []
+        self._message: SignUpMessage = SignUpMessage(self._state)
     
 ################################################################################
     def __getitem__(self, user_id: int) -> Optional[TUser]:
@@ -54,6 +57,29 @@ class TrainingManager:
         return self._tusers
     
 ################################################################################
+    @property
+    def trainer_signup_message(self) -> SignUpMessage:
+        
+        return self._message
+    
+################################################################################
+    @property
+    def all_trainings(self) -> List[Training]:
+        
+        ret = []
+        
+        for tuser in self._tusers:
+            ret.extend(tuser.trainee.trainings)
+            
+        return ret
+    
+################################################################################
+    @property
+    def unmatched_trainings(self) -> List[Training]:
+
+        return [t for t in self.all_trainings if t.trainer is None]
+    
+################################################################################
     async def load_all(self, data: Dict[str, Any]) -> None:
         
         tuser_data = data["tusers"]
@@ -63,6 +89,8 @@ class TrainingManager:
         trainees = data["trainees"]
         qdata = data["qualifications"]
         trainings = data["trainings"]
+        requirement_overrides = data["requirement_overrides"]
+        messages = data["messages"]
         
         user_dict: Dict[int, Dict[str, Any]] = {}
         
@@ -72,6 +100,7 @@ class TrainingManager:
                 "availability": [],
                 "qualifications": [],
                 "trainings": [],
+                "requirement_overrides": [],
             }
         for config in config_data:
             user_dict[config[0]]["config"] = config
@@ -94,13 +123,18 @@ class TrainingManager:
                 user_dict[t[1]]["trainings"].append(t)
             except KeyError:
                 pass
-                
-        temp = []
+        for o in requirement_overrides:
+            try:
+                user_dict[o[0]]["requirement_overrides"].append(o)
+            except KeyError:
+                pass
+             
         for _, data in user_dict.items():
             tuser = await TUser.load(self, data)
             if tuser is not None:
-                temp.append(tuser)
                 self._tusers.append(tuser)
+                
+        await self._message.load(messages["trainer_message"])
         
 ################################################################################
     def get_trainee(self, user_id: int) -> Optional[Trainee]:
@@ -153,56 +187,45 @@ class TrainingManager:
         await view.wait()
         
 ################################################################################
-    async def add_trainee(self, interaction: Interaction) -> None:
-        
-        match = self.get_trainee_by_user_id(interaction.user.id)
-        if match is not None:
-            error = TraineeExistsError(interaction.user)
-            await interaction.respond(embed=error, ephemeral=True)
-            return
-        
-        trainee = Trainee.new(self.bot, interaction.user)
-        self._trainees.append(trainee)
-        
-        await self.trainee_status(interaction)
-        
-################################################################################
-    async def trainee_status(self, interaction: Interaction) -> None:
-        
-        trainee = self.get_trainee_by_user_id(interaction.user.id)
-        if trainee is None:
-            error = TraineeNotFoundError(interaction.user)
-            await interaction.respond(embed=error, ephemeral=True)
-            return
-    
-        await trainee.menu(interaction)
+    async def tuser_status(self, interaction: Interaction) -> None:
+
+        tuser = self[interaction.user.id]
+        if tuser is None:
+            tuser = self.add_tuser(interaction.user)
+
+        status = tuser.trainee_status()
+        view = TUserStatusView(interaction.user, tuser)
+
+        await interaction.respond(embed=status, view=view)
+        await view.wait()
 
 ################################################################################
     async def update_training(self, interaction: Interaction, user: User) -> None:
 
-        trainee = self.get_trainee_by_user_id(user.id)
+        trainee = self.get_trainee(user.id)
         if trainee is None:
             error = TraineeNotFoundError(user)
             await interaction.respond(embed=error, ephemeral=True)
             return
         
-        status = trainee.status()
-        view = UpdateTraineeView(interaction.user, trainee)
-        
-        await interaction.respond(embed=status, view=view)
-        await view.wait()
+        await trainee.update_training(interaction)
 
 ################################################################################
-    async def tuser_status(self, interaction: Interaction, user: User) -> None:
+    async def tuser_admin_status(self, interaction: Interaction, user: User) -> None:
         
         tuser = self[user.id]
         if tuser is None:
             tuser = self.add_tuser(user)
         
         status = tuser.status()
-        view = TUserStatusView(interaction.user, tuser)
+        view = TUserAdminStatusView(interaction.user, tuser)
         
         await interaction.respond(embed=status, view=view)
         await view.wait()
+
+################################################################################
+    async def post_signup_message(self, interaction: Interaction, channel: TextChannel) -> None:
         
+        await self._message.post_signup_message(interaction, channel)
+
 ################################################################################

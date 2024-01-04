@@ -17,7 +17,9 @@ __all__ = (
     "RoleNotFoundError",
     "PositionNotFoundError",
     "InvalidRoleIDError",
-    "InvalidNumberError"
+    "InvalidNumberError",
+    "TraineeMissingError",
+    "UnqualifiedError",
 )
 
 ################################################################################
@@ -151,6 +153,28 @@ class InvalidNumberError(ErrorMessage):
             title="Invalid Number",
             message=f"The value `{number}` is not a valid number.",
             solution=f"Are you sure you entered a number?"
+        )
+        
+################################################################################
+class TraineeMissingError(ErrorMessage):
+    
+    def __init__(self, user: int):
+        
+        super().__init__(
+            title="Trainee Missing",
+            message=f"The a user with ID#: {user} is not registered as a trainee.",
+            solution=f"Consult management to force a post update on this message."
+        )
+        
+################################################################################
+class UnqualifiedError(ErrorMessage):
+    
+    def __init__(self, user: User):
+        
+        super().__init__(
+            title="Unqualified :(",
+            message=f"The user {user.mention} is not qualified to train this position.",
+            solution=f"Consult management to earn qualifications to train, or select another trainee."
         )
         
 ################################################################################

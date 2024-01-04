@@ -27,6 +27,8 @@ class DatabaseLoader(DBWorkerBranch):
             "trainees": self.load_trainees(),
             "qualifications": self.load_qualifications(),
             "trainings": self.load_trainings(),
+            "requirement_overrides": self.load_requirement_overrides(),
+            "messages": self.load_messages(),
         }
 
 ################################################################################
@@ -101,3 +103,24 @@ class DatabaseLoader(DBWorkerBranch):
             return db.fetchall()
         
 ################################################################################
+    def load_requirement_overrides(self) -> Tuple[Tuple[Any, ...], ...]:
+        """Loads all requirement overrides from the database."""
+
+        with self.database as db:
+            db.execute("SELECT * FROM requirement_overrides;")
+            return db.fetchall()
+        
+################################################################################
+    def load_messages(self) -> Dict[str, Tuple[Any, ...]]:
+        """Loads all messages from the database."""
+
+        with self.database as db:
+            db.execute("SELECT * FROM messages;")
+            data = db.fetchall()
+            
+        return {
+            "trainer_message": data[0][1:3],
+        }
+        
+################################################################################
+            

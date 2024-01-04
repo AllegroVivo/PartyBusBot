@@ -1,20 +1,16 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, List, Optional, Type, TypeVar, Any, Dict
+
 from discord import Interaction, User, Embed, EmbedField, NotFound
-from typing import TYPE_CHECKING, List, Optional, Tuple, Type, TypeVar, Any, Dict
 
 from Classes.Training import Trainee, Trainer
-from Classes.Training.UserConfig import UserConfiguration
 from Classes.Training.Availability import Availability
 from Classes.Training.Training import Training
+from Classes.Training.UserConfig import UserConfiguration
 from UI.Common import NameModal, NotesModal
-from UI.Positions import (
-    MultiPositionSelectView,
-    SinglePositionSelectView,
-    RequirementStatusSelectView
-)
-from UI.Training import ScheduleSelectView, TraineeStatusView
-from Utils import Utilities as U, RequirementLevel
+from UI import SetScheduleView
+from Utils import Utilities as U
 
 if TYPE_CHECKING:
     from Classes import PartyBusBot, TrainingManager, Qualification
@@ -97,6 +93,7 @@ class TUser:
         availability = data["availability"]
         qdata = data["qualifications"]
         trainings = data["trainings"]
+        requirement_overrides = data["requirement_overrides"]
         
         try:
             user = await mgr.bot.fetch_user(tuser[0])
@@ -112,10 +109,10 @@ class TUser:
         self._notes = tuser[2]
         
         self._config = UserConfiguration.load(self, config)
-        self._availability = [Availability.load(a) for a in availability]
+        self._availability = [Availability.load(self, a) for a in availability]
         
         self._trainer = Trainer.load(self, qdata)
-        self._trainee = Trainee.load(self, trainings)
+        self._trainee = Trainee.load(self, trainings, requirement_overrides)
         
         return self
     
@@ -161,12 +158,6 @@ class TUser:
         
         self._name = value
         self.update()
-        
-################################################################################
-    @property
-    def trainings(self) -> List[Training]:
-        
-        return self._trainings
     
 ################################################################################    
     @property
@@ -188,6 +179,13 @@ class TUser:
         return self.trainer.qualifications
     
 ################################################################################
+    @property
+    def availability(self) -> List[Availability]:
+        
+        self._availability.sort(key=lambda a: a.day.value)
+        return self._availability
+    
+################################################################################
     def status(self) -> Embed:
         
         return U.make_embed(
@@ -198,10 +196,25 @@ class TUser:
             fields=[
                 self.qualifications_field(),
                 self.training_requested_field(),
+                self.availability_field(),
                 self.notes_field(),
             ]
         )
         
+################################################################################
+    def trainee_status(self) -> Embed:
+        
+        return U.make_embed(
+            title=f"User Status for: {self.name}",
+            description=(
+                f"{U.draw_line(extra=25)}"
+            ),
+            fields=[
+                self.training_requested_field(),
+                self.availability_field(),
+            ]
+        )
+    
 ################################################################################
     def training_requested_field(self) -> EmbedField:        
         
@@ -238,6 +251,15 @@ class TUser:
             inline=True
         )
 
+################################################################################
+    def availability_field(self) -> EmbedField:
+        
+        return EmbedField(
+            name="__Availability__",
+            value=Availability.availability_status(self.availability),
+            inline=False
+        )
+    
 ################################################################################
     def notes_field(self) -> EmbedField:
 
@@ -302,5 +324,30 @@ class TUser:
     async def remove_training(self, interaction: Interaction) -> None:
         
         await self.trainee.remove_training(interaction)
+        
+################################################################################
+    async def set_availability(self, interaction: Interaction) -> None:
+        
+        status = U.make_embed(
+            title="Set Availability",
+            description=(
+                "Please select the appropriate day from the initial\n"
+                "selector, followed by your available time frame.\n\n"
+                
+                "Please note, you can set your timezone\n"
+                "by using the `/training config` command.\n"
+                f"{U.draw_line(extra=25)}"
+            )
+        )
+        view = SetScheduleView(interaction.user)
+        
+        await interaction.response.send_message(embed=status, view=view)
+        await view.wait()
+        
+        if not view.complete or view.value is False:
+            return
+        
+        availability = Availability.new(self, view.value)
+        self._availability.append(availability)
         
 ################################################################################

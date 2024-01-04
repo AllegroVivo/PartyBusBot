@@ -164,7 +164,7 @@ class RequirementLevel(FroggeEnum):
 ################################################################################
 class Weekday(FroggeEnum):
     
-    Unavailable = 0
+    Null = 0
     Monday = 1
     Tuesday = 2
     Wednesday = 3
@@ -177,12 +177,12 @@ class Weekday(FroggeEnum):
     @staticmethod
     def select_options() -> List[SelectOption]:
         
-        return [p.select_option for p in Weekday]
+        return [p.select_option for p in Weekday if p.value != 0]
     
 ################################################################################
 class Hours(FroggeEnum):
     
-    Null = 0
+    Unavailable = 0
     TwelveAM = 1
     OneAM = 2
     TwoAM = 3
@@ -266,8 +266,18 @@ class Hours(FroggeEnum):
 ################################################################################
     @staticmethod
     def select_options() -> List[SelectOption]:
+
+        return [p.select_option for p in Hours]
+    
+################################################################################
+    @staticmethod
+    def adjusted_select_options(start: int) -> List[SelectOption]:
         
-        return [p.select_option for p in Hours if p.value != 0]
+        ret = [o for o in Hours.select_options() if int(o.value) > start]
+        
+        ret.append(Hours(1).select_option)
+        
+        return ret
     
 ################################################################################
 class Timezone(FroggeEnum):

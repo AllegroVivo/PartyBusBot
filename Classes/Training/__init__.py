@@ -1,5 +1,6 @@
 from .Availability import Availability
 from .Qualification import Qualification
+from .SignUpMessage import SignUpMessage
 from .TimeRange import TimeRange
 from .Trainee import Trainee
 from .Trainer import Trainer

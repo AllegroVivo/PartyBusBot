@@ -64,7 +64,8 @@ class Training:
     def load(
         cls: Type[T], 
         parent: Trainee, 
-        data: Tuple[Any, ...]
+        data: Tuple[Any, ...],
+        override_data: List[Tuple[Any, ...]]
     ) -> T:
         
         mgr = parent.bot.training_manager
@@ -72,12 +73,12 @@ class Training:
         position = mgr.bot.get_position(data[2])
         # trainer = mgr.get_trainer(data[3])
         
-        # overrides = {
-        #     requirement_id: RequirementLevel(level)
-        #     for _, requirement_id, level in override_data
-        # }
+        overrides = {
+            requirement_id: level 
+            for requirement_id, level in override_data
+        }
         
-        return cls(data[0], position, parent, None, {})
+        return cls(data[0], position, parent, None, overrides)
     
 ################################################################################
     @property
@@ -90,6 +91,12 @@ class Training:
     def id(self) -> str:
         
         return self._id
+    
+################################################################################
+    @property
+    def user_id(self) -> int:
+        
+        return self._trainee.user_id
     
 ################################################################################
     @property

@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, List, Optional, Type, TypeVar, Any, Tuple
 
-from discord import Interaction, User, SelectOption
+from discord import Interaction, User, SelectOption, Embed, EmbedField
 
 from Classes.Training.Availability import Availability
 from Classes.Training.Training import Training
-from UI.Views import AddTrainingView, RemoveTrainingView
-from Utils import Utilities as U
+from UI.Views import AddTrainingView, RemoveTrainingView, UpdateTrainingView
+from Utils import Utilities as U, RequirementLevel
 
 if TYPE_CHECKING:
     from Classes import PartyBusBot, TUser
@@ -56,15 +56,23 @@ class Trainee:
     def load(
         cls: Type[T],
         parent: TUser,
-        training_data: List[Tuple[Any, ...]]
+        training_data: List[Tuple[Any, ...]],
+        requirement_overrides: List[Tuple[Any, ...]]
     ) -> T:
+        
+        overrides = {}
+        for o in requirement_overrides:
+            try:
+                overrides[o[1]].append((o[2], RequirementLevel(o[3])))
+            except KeyError:
+                overrides[o[1]] = [(o[2], RequirementLevel(o[3]))]
         
         self: T = cls.__new__(cls)
         
         self._parent = parent
         
         self._availability = []
-        self._trainings = [Training.load(parent._manager, t) for t in training_data]
+        self._trainings = [Training.load(self, t, overrides.get(t[0], [])) for t in training_data]
         
         return self
     
@@ -85,13 +93,32 @@ class Trainee:
     def parent(self) -> TUser:
         
         return self._parent
+    
+################################################################################
+    @property
+    def name(self) -> str:
         
+        return self._parent.name
+    
+################################################################################    
+    @property
+    def user(self) -> User:
+        
+        return self._parent.user
+    
 ################################################################################
     @property
     def trainings(self) -> List[Training]:
         
         return self._trainings
 
+################################################################################
+    def get_training(self, pos_id: str) -> Optional[Training]:
+        
+        for t in self._trainings:
+            if t.position.id == pos_id:
+                return t
+    
 ################################################################################
     def update(self) -> None:
         
@@ -163,3 +190,37 @@ class Trainee:
         ]
     
 ################################################################################
+    def training_status(self) -> Embed:
+        
+        return U.make_embed(
+            title="Trainings",
+            description=(
+                "Here are this trainee's current in-progress trainings.\n\n"
+                
+                "Please choose a job to update from the selector below.\n"
+                "Another selector will appear to choose which\n"
+                "requirement has been completed.\n"
+                f"{U.draw_line(extra=33)}"
+            ),
+            fields=[t.embed_field for t in self._trainings]
+        )
+    
+################################################################################
+    async def update_training(self, interaction: Interaction) -> None:
+
+        status = self.training_status()
+        view = UpdateTrainingView(interaction.user, self)
+
+        await interaction.respond(embed=status, view=view)
+        await view.wait()
+        
+        if not view.complete or view.value is False:
+            return
+        
+        training = self.get_training(view.value[0])
+        training.add_requirement_override(view.value[1], RequirementLevel(view.value[2]))
+        
+        await self.update_training(interaction)
+        
+################################################################################
+        

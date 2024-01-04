@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 from .Branch import DBWorkerBranch
 
@@ -132,17 +132,13 @@ class DatabaseInserter(DBWorkerBranch):
             )
             
 ################################################################################
-    def insert_availability(self, availability: TimeRange) -> None:
+    def insert_availability(self, user_id: int, day: int, start: int, end: Optional[int]) -> None:
         
         with self.database as db:
             db.execute(
-                "INSERT INTO availability (trainee_id, weekday, start_time, "
-                "end_time, timezone) VALUES (%s, %s, %s, %s, %s);",
-                (
-                    availability.trainee_id, availability.day.value, 
-                    availability.start.value, availability.end.value, 
-                    availability.timezone.value
-                )
+                "INSERT INTO availability (user_id, day, start_time, end_time) "
+                "VALUES (%s, %s, %s, %s);",
+                (user_id, day, start, end)
             )
             
 ################################################################################
