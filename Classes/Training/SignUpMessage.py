@@ -6,8 +6,8 @@ from discord import Embed, Interaction, Message, TextChannel, HTTPException, Not
 from discord.ui import View
 from typing import TYPE_CHECKING, Optional, Any, Tuple, List
 
-from UI import ConfirmCancelView, TrainerMessageSelectView
-from Utils import Utilities as U, TraineeMissingError, UnqualifiedError
+from UI import ConfirmCancelView, TrainerMessageSelectView, SelectPositionView
+from Utils import Utilities as U, TraineeMissingError, UnqualifiedError, ChannelNotSetError
 
 if TYPE_CHECKING:
     from Classes import PartyBusBot, TrainingManager
@@ -172,22 +172,27 @@ class SignUpMessage:
 ################################################################################
     async def post_signup_message(self, interaction: Interaction, channel: Optional[TextChannel] = None) -> None:
         
+        if self.channel is None and channel is None:
+            error = ChannelNotSetError()
+            await interaction.respond(embed=error, ephemeral=True)
+            return
+        
         if channel is not None:
             self.channel = channel
         
         view = self.status_view() 
-        if self._message is None:
-            self._message = await self._channel.send(
-                embed=self.status(),
-                view=view,
-            )
-        else:
-            self._message = await self._message.edit(
-                embed=self.status(),
-                view=self.status_view(),
-            )
+        if self._message is not None:
+            try:
+                await self.message.delete()
+            except (HTTPException, NotFound):
+                pass
+            
+        self._message = await self.channel.send(
+            embed=self.status(),
+            view=view,
+        )
         
-        await interaction.respond("** **", delete_after=0.1)
+        await interaction.respond("**Thinking...**", delete_after=0.1)
         await view.wait()
         
         await self.handle_trainee_assignment(interaction, view.value)
@@ -209,7 +214,7 @@ class SignUpMessage:
         trainee = self._state.training_manager.get_trainee(value)
         if trainee is None:
             error = TraineeMissingError(value)
-            await interaction.respond(embed=error, ephemeral=True)
+            await self.channel.send(embed=error, delete_after=30)
             return
         
         trainer = self._state.training_manager.get_trainer(interaction.user.id)
@@ -220,8 +225,31 @@ class SignUpMessage:
         
         if not common_positions:
             error = UnqualifiedError(trainer.user)
-            await interaction.respond(embed=error, ephemeral=True)
+            await self.channel.send(embed=error, delete_after=30)
             return
+        
+        position_options = [
+            SelectOption(label=pos.name, value=pos.id)
+            for pos in common_positions
+        ]
+        pos_id = position_options[0].value
+        if len(position_options) > 1:
+            embed = U.make_embed(
+                title="__SELECT POSITION__",
+                description=(
+                    "You are qualified to train this trainee in multiple positions. "
+                    "Please select the position you wish to train them in."
+                ),
+            )
+            view = SelectPositionView(interaction.user, position_options)
+            
+            await self.channel.send(embed=embed, view=view)
+            await view.wait()
+            
+            if not view.complete:
+                return
+            
+            pos_id = view.value
         
         confirm = U.make_embed(
             title="__CONFIRM TRAINEE ASSIGNMENT__",
@@ -233,13 +261,15 @@ class SignUpMessage:
         )
         view = ConfirmCancelView(interaction.user)
         
-        await interaction.respond(embed=confirm, view=view)
+        await self.channel.send(embed=confirm, view=view)
         await view.wait()
         
         if not view.complete or view.value is False:
             return
         
-        await interaction.respond(view.value)
+        training = self._state.training_manager.get_training(trainee.user.id, pos_id)
+        training.set_trainer(trainer)
+        
         await self.post_signup_message(interaction)
 
 ################################################################################

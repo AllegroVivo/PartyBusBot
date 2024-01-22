@@ -56,7 +56,7 @@ class Trainer:
     def bot(self) -> PartyBusBot:
         
         return self._parent.bot
-    
+
 ################################################################################
     @property
     def name(self) -> str:

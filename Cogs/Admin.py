@@ -58,6 +58,15 @@ class Admin(Cog):
     ) -> None:
         
         await self.bot.post_signup_message(ctx.interaction, channel)
+    
+################################################################################
+    @admin.command(
+        name="trainer_management",
+        description="Manage trainer assignments."
+    )
+    async def trainer_management(self,  ctx: ApplicationContext) -> None:
+        
+        await self.bot.manage_trainers(ctx.interaction)
         
 ################################################################################
 def setup(bot: "PartyBusBot") -> None:

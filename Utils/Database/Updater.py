@@ -69,7 +69,7 @@ class DatabaseUpdater(DBWorkerBranch):
             db.execute(
                 "UPDATE trainings SET position = %s, trainer = %s WHERE _id = %s;",
                 (
-                    training.position.id, training.trainer.id if training.trainer else None,
+                    training.position.id, training.trainer.user.id if training.trainer else None,
                     training.id
                 )
             )

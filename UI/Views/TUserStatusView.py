@@ -183,9 +183,13 @@ class AddTrainingButton(Button):
     async def callback(self, interaction: Interaction) -> None:
         await self.view.tuser.add_training(interaction)
         
-        self.view.set_buttons()
+        try:
+            self.view.set_buttons()
+            embed = self.view.tuser.status()
+        except AttributeError:
+            embed = self.view.tuser.trainee_status()
         
-        await edit_message_helper(interaction, embed=self.view.tuser.status(), view=self.view)
+        await edit_message_helper(interaction, embed=embed, view=self.view)
 
 ################################################################################
 class RemoveTrainingButton(Button):
@@ -201,8 +205,12 @@ class RemoveTrainingButton(Button):
     async def callback(self, interaction: Interaction) -> None:
         await self.view.tuser.remove_training(interaction)
 
-        self.view.set_buttons()
+        try:
+            self.view.set_buttons()
+            embed = self.view.tuser.status()
+        except AttributeError:
+            embed = self.view.tuser.trainee_status()
 
-        await edit_message_helper(interaction, embed=self.view.tuser.status(), view=self.view)
+        await edit_message_helper(interaction, embed=embed, view=self.view)
         
 ################################################################################

@@ -2,17 +2,18 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, List, Optional, Any, Dict
 
-from discord import Interaction, User, TextChannel
+from discord import Interaction, User, TextChannel, EmbedField
 
 from Classes.Training.SignUpMessage import SignUpMessage
 from Classes.Training.TUser import TUser
 from Classes.Training.Trainee import Trainee
+from Classes.Training.Training import Training
 from Classes.Training.Trainer import Trainer
 from UI import TrainerStatusView, TUserStatusView, TUserAdminStatusView
-from Utils import TraineeExistsError, TraineeNotFoundError
+from Utils import Utilities as U, TraineeExistsError, TraineeNotFoundError
 
 if TYPE_CHECKING:
-    from Classes import PartyBusBot, Position, Training
+    from Classes import PartyBusBot, Position
 ################################################################################
 
 __all__ = ("TrainingManager",)
@@ -24,6 +25,7 @@ class TrainingManager:
         "_state",
         "_tusers",
         "_message",
+        "_trainings",
     )
 
 ################################################################################
@@ -32,6 +34,8 @@ class TrainingManager:
         self._state: PartyBusBot = state
         
         self._tusers: List[TUser] = []
+        self._trainings: List[Training] = []
+        
         self._message: SignUpMessage = SignUpMessage(self._state)
     
 ################################################################################
@@ -66,12 +70,7 @@ class TrainingManager:
     @property
     def all_trainings(self) -> List[Training]:
         
-        ret = []
-        
-        for tuser in self._tusers:
-            ret.extend(tuser.trainee.trainings)
-            
-        return ret
+        return self._trainings
     
 ################################################################################
     @property
@@ -89,7 +88,6 @@ class TrainingManager:
         trainees = data["trainees"]
         qdata = data["qualifications"]
         trainings = data["trainings"]
-        requirement_overrides = data["requirement_overrides"]
         messages = data["messages"]
         
         user_dict: Dict[int, Dict[str, Any]] = {}
@@ -118,41 +116,51 @@ class TrainingManager:
                 user_dict[q[1]]["qualifications"].append(q)
             except KeyError:
                 pass
-        for t in trainings:
+            
+        overrides = {}
+        for o in data["requirement_overrides"]:
             try:
-                user_dict[t[1]]["trainings"].append(t)
+                overrides[o[1]].append((o[2], o[3]))
             except KeyError:
-                pass
-        for o in requirement_overrides:
-            try:
-                user_dict[o[0]]["requirement_overrides"].append(o)
-            except KeyError:
-                pass
+                overrides[o[1]] = [(o[2], o[3])]
              
         for _, data in user_dict.items():
             tuser = await TUser.load(self, data)
             if tuser is not None:
                 self._tusers.append(tuser)
                 
+        for t in trainings:
+            training = Training.load(self.get_trainee(t[1]), t, overrides.get(t[0], []))
+            if training is not None:
+                self._trainings.append(training)
+                
         await self._message.load(messages["trainer_message"])
         
 ################################################################################
     def get_trainee(self, user_id: int) -> Optional[Trainee]:
         
-        tuser = self[user_id]
-        if tuser is not None:
-            return tuser.trainee
+        return self[user_id].trainee if self[user_id] is not None else None
         
 ################################################################################
     def get_trainer(self, user_id: Optional[int]) -> Optional[Trainer]:
         
         if user_id is None:
             return
+
+        return self[user_id].trainer if self[user_id] is not None else None
+           
+################################################################################
+    def get_training(self, trainee_user_id: int, pos_id: str) -> Optional[Training]:
+    
+        for t in self._trainings:
+            if t.trainee.user_id == trainee_user_id and t.position.id == pos_id:
+                return t
+    
+################################################################################        
+    def get_trainings_by_user(self, user_id: int) -> List[Training]:
         
-        tuser = self[user_id]
-        if tuser is not None:
-            return tuser.trainer
-            
+        return [t for t in self._trainings if t.trainee.user_id == user_id]
+    
 ################################################################################
     def get_positions(self, position_ids: List[str]) -> List[Position]:
         
@@ -163,6 +171,11 @@ class TrainingManager:
                 ret.append(position)
                 
         return ret            
+    
+################################################################################
+    def get_trainings_by_position(self, position_id: str) -> List[Training]:
+        
+        return [t for t in self._trainings if t.position.id == position_id]
     
 ################################################################################        
     def add_tuser(self, user: User) -> TUser:
@@ -228,4 +241,55 @@ class TrainingManager:
         
         await self._message.post_signup_message(interaction, channel)
 
+################################################################################
+    def add_training(self, training: Training) -> None:
+        
+        self._trainings.append(training)
+        
+################################################################################
+    def remove_training(self, training_id: str) -> None:
+        
+        for t in self._trainings:
+            if t.id == training_id:
+                self._trainings.remove(t)
+                t.delete()
+                return
+
+################################################################################
+    async def manage_trainers(self, interaction: Interaction) -> None:
+        
+        status = U.make_embed(
+            title="Manage Trainers",
+            description="Manage trainer assignments.",
+            fields=self.all_position_fields(),
+        )
+        
+        await interaction.respond(embed=status)
+
+################################################################################
+    def all_position_fields(self) -> List[EmbedField]:
+        
+        ret = []
+        
+        for pos in self.bot.position_manager.positions:
+            pos_trainings = self.get_trainings_by_position(pos.id)
+            pos_str = ""
+            
+            if not pos_trainings:
+                pos_str = "`No Trainees`"
+            else:
+                for t in pos_trainings:
+                    trainer_str = f"`{t.trainer.name}`" if t.trainer is not None else "`No Trainer Assigned`"
+                    pos_str += f"* {t.trainee.name}\n{trainer_str}\n"
+                
+            ret.append(
+                EmbedField(
+                    name=pos.name,
+                    value=pos_str,                        
+                    inline=True
+                )
+            )
+            
+        return ret
+    
 ################################################################################

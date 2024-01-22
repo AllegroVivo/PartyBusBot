@@ -104,3 +104,8 @@ class PartyBusBot(Bot):
         await self.training_manager.post_signup_message(interaction, channel)
 
 ################################################################################
+    async def manage_trainers(self, interaction: Interaction) -> None:
+        
+        await self.training_manager.manage_trainers(interaction)
+
+################################################################################

@@ -22,22 +22,14 @@ class Trainee:
     
     __slots__ = (
         "_parent",
-        "_trainings",
         "_availability",
     )
     
 ################################################################################
-    def __init__(
-        self,
-        parent: TUser,
-        availabilities: Optional[List[Availability]] = None,
-        trainings: Optional[List[Training]] = None,
-    ) -> None:
+    def __init__(self, parent: TUser, availabilities: Optional[List[Availability]] = None) -> None:
         
         self._parent: TUser = parent
-        
         self._availability: List[Availability] = availabilities or []
-        self._trainings: List[Training] = trainings or []
         
 ################################################################################
     def __eq__(self, other: Trainee) -> bool:
@@ -53,26 +45,12 @@ class Trainee:
     
 ################################################################################
     @classmethod
-    def load(
-        cls: Type[T],
-        parent: TUser,
-        training_data: List[Tuple[Any, ...]],
-        requirement_overrides: List[Tuple[Any, ...]]
-    ) -> T:
-        
-        overrides = {}
-        for o in requirement_overrides:
-            try:
-                overrides[o[1]].append((o[2], RequirementLevel(o[3])))
-            except KeyError:
-                overrides[o[1]] = [(o[2], RequirementLevel(o[3]))]
+    def load(cls: Type[T], parent: TUser) -> T:
         
         self: T = cls.__new__(cls)
         
         self._parent = parent
-        
         self._availability = []
-        self._trainings = [Training.load(self, t, overrides.get(t[0], [])) for t in training_data]
         
         return self
     
@@ -110,15 +88,8 @@ class Trainee:
     @property
     def trainings(self) -> List[Training]:
         
-        return self._trainings
+        return [t for t in self.bot.training_manager.all_trainings if t.trainee == self]
 
-################################################################################
-    def get_training(self, pos_id: str) -> Optional[Training]:
-        
-        for t in self._trainings:
-            if t.position.id == pos_id:
-                return t
-    
 ################################################################################
     def update(self) -> None:
         
@@ -138,7 +109,7 @@ class Trainee:
         base_options = self.bot.position_manager.select_options()
         options = [
             o for o in base_options
-            if o.value not in [t.position.id for t in self._trainings]
+            if o.value not in [t.position.id for t in self.trainings]
         ]
         
         view = AddTrainingView(interaction.user, options)
@@ -150,7 +121,7 @@ class Trainee:
             return
         
         for pos_id in view.value:
-            self._trainings.append(Training.new(self, pos_id))
+            self.bot.training_manager.add_training(Training.new(self, pos_id))
     
 ################################################################################
     async def remove_training(self, interaction: Interaction) -> None:
@@ -173,10 +144,7 @@ class Trainee:
         if not view.complete or view.value is False:
             return
     
-        for t in self.trainings:
-            if t.id == view.value:
-                self._trainings.remove(t)
-                t.delete()
+        self.bot.training_manager.remove_training(view.value)
             
 ################################################################################
     def training_select_options(self) -> List[SelectOption]:
@@ -186,7 +154,7 @@ class Trainee:
                 label=t.position.name,
                 value=str(t.id),
             )
-            for t in self._trainings
+            for t in self.trainings
         ]
     
 ################################################################################
@@ -202,7 +170,7 @@ class Trainee:
                 "requirement has been completed.\n"
                 f"{U.draw_line(extra=33)}"
             ),
-            fields=[t.embed_field for t in self._trainings]
+            fields=[t.embed_field for t in self.trainings]
         )
     
 ################################################################################
@@ -223,4 +191,10 @@ class Trainee:
         await self.update_training(interaction)
         
 ################################################################################
+    def get_training(self, training_id: str) -> Optional[Training]:
         
+        for t in self.trainings:
+            if t.id == training_id:
+                return t
+            
+################################################################################

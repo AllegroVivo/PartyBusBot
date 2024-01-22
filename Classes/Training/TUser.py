@@ -92,8 +92,6 @@ class TUser:
         config = data["config"]
         availability = data["availability"]
         qdata = data["qualifications"]
-        trainings = data["trainings"]
-        requirement_overrides = data["requirement_overrides"]
         
         try:
             user = await mgr.bot.fetch_user(tuser[0])
@@ -112,7 +110,7 @@ class TUser:
         self._availability = [Availability.load(self, a) for a in availability]
         
         self._trainer = Trainer.load(self, qdata)
-        self._trainee = Trainee.load(self, trainings, requirement_overrides)
+        self._trainee = Trainee.load(self)
         
         return self
     
@@ -218,18 +216,22 @@ class TUser:
 ################################################################################
     def training_requested_field(self) -> EmbedField:        
         
+        trainings = self._manager.get_trainings_by_user(self.user_id)
+        
+        if not trainings:
+            training_str = "`None`"
+        else:
+            training_str = ""
+        
+        for t in trainings:
+            if training_str == "":
+                training_str = f"* {t.position.name}\n---Trainer: "
+                
+            training_str += f"`{t.trainer.name}`\n" if t.trainer else "None... (Yet!)"
+            
         return EmbedField(
             name="__Trainings Requested__",
-            value=(
-                (
-                    "* " + "\n* ".join(
-                        [
-                            f"{t.position.name}"
-                            for t in self.trainee.trainings
-                        ]
-                    ) if self.trainee.trainings else "`None`"
-                )
-            ),
+            value=training_str,
             inline=True
         )
 

@@ -20,6 +20,7 @@ __all__ = (
     "InvalidNumberError",
     "TraineeMissingError",
     "UnqualifiedError",
+    "ChannelNotSetError",
 )
 
 ################################################################################
@@ -175,6 +176,17 @@ class UnqualifiedError(ErrorMessage):
             title="Unqualified :(",
             message=f"The user {user.mention} is not qualified to train this position.",
             solution=f"Consult management to earn qualifications to train, or select another trainee."
+        )
+        
+################################################################################
+class ChannelNotSetError(ErrorMessage):
+    
+    def __init__(self):
+        
+        super().__init__(
+            title="Channel Not Set",
+            message=f"The channel for the training message has not been set.",
+            solution=f"Consult management to set the channel."
         )
         
 ################################################################################
