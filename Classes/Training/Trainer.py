@@ -75,6 +75,14 @@ class Trainer:
 
         return self._qualifications
         
+    @property
+    def select_option(self) -> SelectOption:
+        
+        return SelectOption(
+            label=self.name,
+            value=str(self.user.id)
+        )
+    
 ################################################################################
     def qualifications_field(self) -> EmbedField:
         
@@ -228,5 +236,14 @@ class Trainer:
             )
             
         return options
+
+################################################################################
+    def is_qualified(self, position_id: str) -> bool:
+        
+        for q in self._qualifications:
+            if q.position.id == position_id:
+                return True
+            
+        return False
 
 ################################################################################

@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, List, Optional, Type, TypeVar, Any, Tuple
 
 from discord import Interaction, User, SelectOption, Embed, EmbedField
 
+from Assets import BotEmojis
 from Classes.Training.Availability import Availability
 from Classes.Training.Training import Training
 from UI.Views import AddTrainingView, RemoveTrainingView, UpdateTrainingView
@@ -197,4 +198,26 @@ class Trainee:
             if t.id == training_id:
                 return t
             
+################################################################################
+    async def notify_of_selection(self, training: Training) -> None:
+        
+        embed = U.make_embed(
+            title="You've Been Matched!",
+            description=(
+                f"Congratulations! You have been paired with a trainer for "
+                f"`{training.position.name}`.\n\n"
+                
+                f"Your trainer will be... {BotEmojis.Drum} ***drumroll...*** {BotEmojis.Drum}\n"
+                f"`{training.trainer.name}`! ({training.trainer.user.mention})\n\n"
+                
+                "Your trainer will contact you shortly to schedule a training "
+                "session based on the availability that you provided in your "
+                "trainee profile.\n"
+
+                f"{U.draw_line(extra=35)}"
+            )
+        )
+        
+        await self.user.send(embed=embed)
+    
 ################################################################################

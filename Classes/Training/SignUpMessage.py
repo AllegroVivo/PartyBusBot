@@ -270,6 +270,7 @@ class SignUpMessage:
         training = self._state.training_manager.get_training(trainee.user.id, pos_id)
         training.set_trainer(trainer)
         
+        await trainee.notify_of_selection(training)
         await self.post_signup_message(interaction)
 
 ################################################################################

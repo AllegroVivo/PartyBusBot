@@ -2,14 +2,21 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, List, Optional, Any, Dict
 
-from discord import Interaction, User, TextChannel, EmbedField
+from discord import Interaction, User, TextChannel, EmbedField, SelectOption, Embed
 
 from Classes.Training.SignUpMessage import SignUpMessage
 from Classes.Training.TUser import TUser
 from Classes.Training.Trainee import Trainee
 from Classes.Training.Training import Training
 from Classes.Training.Trainer import Trainer
-from UI import TrainerStatusView, TUserStatusView, TUserAdminStatusView
+from UI import (
+    TrainerStatusView,
+    TUserStatusView,
+    TUserAdminStatusView,
+    TrainerAssignmentStatusView,
+    AddTrainerSelectView,
+    RemoveTrainerSelectView
+)
 from Utils import Utilities as U, TraineeExistsError, TraineeNotFoundError
 
 if TYPE_CHECKING:
@@ -162,6 +169,18 @@ class TrainingManager:
         return [t for t in self._trainings if t.trainee.user_id == user_id]
     
 ################################################################################
+    def get_qualified_trainers(self, position_id: str) -> List[Trainer]:
+            
+        return [t for t in [tr.trainer for tr in self._tusers] if t.is_qualified(position_id)]
+    
+################################################################################
+    def get_training_by_id(self, training_id: str) -> Optional[Training]:
+        
+        for t in self._trainings:
+            if t.id == training_id:
+                return t
+            
+################################################################################
     def get_positions(self, position_ids: List[str]) -> List[Position]:
         
         ret = []
@@ -258,14 +277,21 @@ class TrainingManager:
 ################################################################################
     async def manage_trainers(self, interaction: Interaction) -> None:
         
-        status = U.make_embed(
+        status = self.manage_trainers_embed()
+        view = TrainerAssignmentStatusView(interaction.user, self)
+        
+        await interaction.respond(embed=status, view=view)
+        await view.wait()
+
+################################################################################
+    def manage_trainers_embed(self) -> Embed:
+        
+        return U.make_embed(
             title="Manage Trainers",
             description="Manage trainer assignments.",
             fields=self.all_position_fields(),
         )
-        
-        await interaction.respond(embed=status)
-
+    
 ################################################################################
     def all_position_fields(self) -> List[EmbedField]:
         
@@ -291,5 +317,82 @@ class TrainingManager:
             )
             
         return ret
+
+################################################################################
+    def training_options(self) -> List[SelectOption]:
+        
+        ret = []
+        
+        for t in self.all_trainings:
+            ret.append(
+                SelectOption(
+                    label=f"{t.trainee.name} - {t.position.name}",
+                    description=f"Trainer: {t.trainer.name}" if t.trainer is not None else "No Trainer Assigned",
+                    value=t.id
+                )
+            )
+            
+        return ret
+
+################################################################################
+    async def add_trainer_to_training(self, interaction: Interaction) -> None:
+        
+        embed = U.make_embed(
+            title="Add Trainer to Trainee",
+            description="Select a trainee to get their list of trainings...",
+            fields=[self.trainee_list_field()]
+        )
+        view = AddTrainerSelectView(interaction.user, self)
+        
+        await interaction.respond(embed=embed, view=view)
+        await view.wait()
+        
+        if not view.complete or view.value is False:
+            return
+        
+        trainee, training = view.value
+        await trainee.notify_of_selection(training)
+    
+################################################################################
+    def trainee_list_field(self) -> EmbedField:
+        
+        return EmbedField(
+            name="Trainees",
+            value="\n".join([f"* {t.name}" for t in [tr.trainee for tr in self._tusers]]),
+            inline=True
+        )
+    
+################################################################################
+    def trainee_options(self) -> List[SelectOption]:
+        
+        ret = []
+        
+        for t in self._tusers:
+            ret.append(
+                SelectOption(
+                    label=t.name,
+                    value=str(t.user_id)
+                )
+            )
+            
+        return ret
+    
+################################################################################
+    async def remove_trainer_from_training(self, interaction: Interaction) -> None:
+        
+        embed = self.remove_trainer_embed()
+        view = RemoveTrainerSelectView(interaction.user, self)
+
+        await interaction.respond(embed=embed, view=view)
+        await view.wait()
+    
+################################################################################
+    def remove_trainer_embed(self) -> Embed:
+        
+        return U.make_embed(
+            title="Remove Trainer from Trainee",
+            description="Select a trainee to get their list of trainings...",
+            fields=[self.trainee_list_field()]
+        )
     
 ################################################################################

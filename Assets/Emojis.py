@@ -13,6 +13,7 @@ class BotEmojis:
     Check = PartialEmoji.from_str("<:check:958615684869414962>")
     Construction = PartialEmoji.from_str("🚧")
     Cross = PartialEmoji.from_str("❌")
+    Drum = PartialEmoji.from_str("🥁")
     Envelope = PartialEmoji.from_str("💌")
     Eyes = PartialEmoji.from_str("👀")
     FlyingMoney = PartialEmoji.from_str("💸")

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, List, Optional, Tuple, Type, TypeVar, Any, Dict
 
-from discord import EmbedField
+from discord import EmbedField, SelectOption
 
 from Assets import BotEmojis
 from Utils import RequirementLevel
@@ -74,7 +74,7 @@ class Training:
         trainer = mgr.get_trainer(data[3])
         
         overrides = {
-            requirement_id: level 
+            requirement_id: RequirementLevel(level) 
             for requirement_id, level in override_data
         }
         
@@ -128,6 +128,15 @@ class Training:
     def requirement_overrides(self) -> Dict[str, RequirementLevel]:
         
         return self._overrides
+    
+################################################################################
+    @property
+    def select_option(self) -> SelectOption:
+    
+        return SelectOption(
+            label=self.position.name,
+            value=self.id,
+        )
     
 ################################################################################
     @property
