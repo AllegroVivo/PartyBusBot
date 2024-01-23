@@ -52,7 +52,7 @@ class DatabaseBuilder(DBWorkerBranch):
                 "CREATE TABLE IF NOT EXISTS tuser_config ("
                 "user_id BIGINT PRIMARY KEY,"
                 "image_url TEXT,"
-                "timezone INTEGER"
+                "job_pings BOOLEAN"
                 ");"
             )
             db.execute(

@@ -42,6 +42,24 @@ class Trainers(Cog):
         await self.bot.update_training(ctx.interaction, user)
 
 ################################################################################
+    @trainers.command(
+        name="query_trainee",
+        description="Check details about a prospective or active trainee."
+    )
+    async def query_trainee(
+        self, 
+        ctx: ApplicationContext,
+        user: Option(
+            SlashCommandOptionType.user,
+            name="user",
+            description="The user whose trainer record to view.",
+            required=True
+        )
+    ) -> None:
+        
+        await self.bot.query_trainee(ctx.interaction, user)
+        
+################################################################################
 def setup(bot: "PartyBusBot") -> None:
 
     bot.add_cog(Trainers(bot))

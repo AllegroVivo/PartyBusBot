@@ -109,3 +109,13 @@ class PartyBusBot(Bot):
         await self.training_manager.manage_trainers(interaction)
 
 ################################################################################
+    async def query_trainee(self, interaction: Interaction, user: User) -> None:
+        
+        await self.training_manager.query_trainee(interaction, user)
+
+################################################################################
+    async def tuser_config(self, interaction: Interaction) -> None:
+        
+        await self.training_manager.tuser_config(interaction)
+
+################################################################################

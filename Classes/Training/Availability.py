@@ -62,15 +62,27 @@ class Availability:
     
 ################################################################################
     @property
-    def start_time(self) -> str:
+    def start_time(self) -> Hours:
         
-        return self._start.proper_name
+        return self._start
     
 ################################################################################
     @property
-    def end_time(self) -> str:
+    def end_time(self) -> Hours:
         
-        return self._end.proper_name
+        return self._end
+    
+################################################################################
+    @property
+    def start_timestamp(self) -> str:
+        
+        return self._start.timestamp
+    
+################################################################################
+    @property
+    def end_timestamp(self) -> str:
+        
+        return self._end.timestamp
     
 ################################################################################
     @staticmethod
@@ -84,11 +96,12 @@ class Availability:
         for i in [w for w in Weekday if w.value != 0]:
             if i.value not in [a.day.value for a in availability]:
                 ret += f"{i.proper_name}: `Not Available`\n"
-                continue
             else:
                 a = [a for a in availability if a.day == i][0]
-                ret += f"{a.day.proper_name}: `{a.start_time}` - `{a.end_time}`\n"
-                continue
+                ret += (
+                    f"{a.day.proper_name}: "
+                    f"{a.start_timestamp} - {a.end_timestamp}\n"
+                )
         
         return ret
     

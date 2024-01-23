@@ -7,6 +7,8 @@ from discord import (
 )
 from typing import TYPE_CHECKING
 
+from Utils import Hours
+
 if TYPE_CHECKING:
     from Classes.Bot import PartyBusBot
 ################################################################################
@@ -67,6 +69,13 @@ class Admin(Cog):
     async def trainer_management(self,  ctx: ApplicationContext) -> None:
         
         await self.bot.manage_trainers(ctx.interaction)
+        
+    @admin.command(name="test")
+    async def test(self, ctx: ApplicationContext) -> None:
+        
+        await ctx.respond(Hours(4).timestamp())
+        await ctx.respond(Hours(10).timestamp())
+        await ctx.respond(Hours(17).timestamp())
         
 ################################################################################
 def setup(bot: "PartyBusBot") -> None:

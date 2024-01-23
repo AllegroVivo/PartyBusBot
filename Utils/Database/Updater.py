@@ -108,6 +108,11 @@ class DatabaseUpdater(DBWorkerBranch):
                 "UPDATE tusers SET name = %s, notes = %s WHERE user_id = %s;",
                 (tuser.name, tuser.notes, tuser.user_id)
             )
+            db.execute(
+                "UPDATE tuser_config SET image_url = %s, job_pings = %s "
+                "WHERE user_id = %s;",
+                (tuser.config.image, tuser.config.job_pings, tuser.user_id)
+            )
     
 ################################################################################      
     def update_trainer_signup_message(self, message: SignUpMessage) -> None:

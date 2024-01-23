@@ -1,10 +1,10 @@
 import math
-
 from datetime import datetime
 from typing import Any, List, Optional, Tuple, Union
 
 from discord import Colour, Embed, EmbedField
 
+from .Enums import Hours, Timezone
 from Utils.Colors import CustomColor
 ################################################################################
 
@@ -215,4 +215,10 @@ class Utilities:
         except ValueError:
             return None
 
+################################################################################
+    @staticmethod
+    def shift_time(time: Hours, tz: Timezone) -> Hours:
+        
+        pass
+    
 ################################################################################

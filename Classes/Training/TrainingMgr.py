@@ -15,7 +15,8 @@ from UI import (
     TUserAdminStatusView,
     TrainerAssignmentStatusView,
     AddTrainerSelectView,
-    RemoveTrainerSelectView
+    RemoveTrainerSelectView,
+    CloseMessageView
 )
 from Utils import Utilities as U, TraineeExistsError, TraineeNotFoundError
 
@@ -394,5 +395,31 @@ class TrainingManager:
             description="Select a trainee to get their list of trainings...",
             fields=[self.trainee_list_field()]
         )
-    
+
+################################################################################
+    async def query_trainee(self, interaction: Interaction, user: User) -> None:
+        
+        tuser = self[user.id]
+        if tuser is None:
+            error = TraineeNotFoundError(user)
+            await interaction.respond(embed=error, ephemeral=True)
+            return
+        
+        embed = tuser.trainee_status()
+        view = CloseMessageView(interaction.user)
+        
+        await interaction.respond(embed=embed, view=view)
+        await view.wait()
+
+################################################################################
+    async def tuser_config(self, interaction: Interaction) -> None:
+
+        tuser = self[interaction.user.id]
+        if tuser is None:
+            error = TraineeNotFoundError(interaction.user)
+            await interaction.respond(embed=error, ephemeral=True)
+            return
+        
+        await tuser.config.menu(interaction)
+
 ################################################################################

@@ -72,6 +72,8 @@ class TUser:
         
         self: TU = cls.__new__(cls)
         
+        self._manager = bot.training_manager
+        
         self._user = user
         self._name = user.name
         self._notes = None
@@ -146,6 +148,18 @@ class TUser:
     
 ################################################################################
     @property
+    def image(self) -> Optional[str]:
+    
+        return self._config.image
+    
+################################################################################
+    @property
+    def config(self) -> UserConfiguration:
+        
+        return self._config
+    
+################################################################################
+    @property
     def name(self) -> str:
         
         return self._name
@@ -210,7 +224,12 @@ class TUser:
             fields=[
                 self.training_requested_field(),
                 self.availability_field(),
-            ]
+            ],
+            footer_text=(
+                "If the availability times above are different than what\n"
+                "you specified, try adjusting your personal timezone\n"
+                "using the `/training config` command."
+            )
         )
     
 ################################################################################

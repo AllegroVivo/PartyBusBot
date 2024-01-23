@@ -33,6 +33,15 @@ class Training(Cog):
     async def training_profile(self, ctx: ApplicationContext) -> None:
         
         await self.bot.tuser_status(ctx.interaction)
+      
+################################################################################  
+    @training.command(
+        name="config",
+        description="View and edit user configuration."
+    )
+    async def training_config(self, ctx: ApplicationContext) -> None:
+        
+        await self.bot.tuser_config(ctx.interaction)
         
 ################################################################################
 def setup(bot: "PartyBusBot") -> None:

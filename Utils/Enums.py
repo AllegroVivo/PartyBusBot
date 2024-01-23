@@ -212,54 +212,10 @@ class Hours(FroggeEnum):
     @property
     def proper_name(self) -> str:
         
-        if self.value == 1:
-            return "12:00 AM"
-        elif self.value == 2:
-            return "1:00 AM"
-        elif self.value == 3:
-            return "2:00 AM"
-        elif self.value == 4:
-            return "3:00 AM"
-        elif self.value == 5:
-            return "4:00 AM"
-        elif self.value == 6:
-            return "5:00 AM"
-        elif self.value == 7:
-            return "6:00 AM"
-        elif self.value == 8:
-            return "7:00 AM"
-        elif self.value == 9:
-            return "8:00 AM"
-        elif self.value == 10:
-            return "9:00 AM"
-        elif self.value == 11:
-            return "10:00 AM"
-        elif self.value == 12:
-            return "11:00 AM"
-        elif self.value == 13:
-            return "12:00 PM"
-        elif self.value == 14:
-            return "1:00 PM"
-        elif self.value == 15:
-            return "2:00 PM"
-        elif self.value == 16:
-            return "3:00 PM"
-        elif self.value == 17:
-            return "4:00 PM"
-        elif self.value == 18:
-            return "5:00 PM"
-        elif self.value == 19:
-            return "6:00 PM"
-        elif self.value == 20:
-            return "7:00 PM"
-        elif self.value == 21:
-            return "8:00 PM"
-        elif self.value == 22:
-            return "9:00 PM"
-        elif self.value == 23:
-            return "10:00 PM"
-        elif self.value == 24:
-            return "11:00 PM"
+        if 1 <= self.value <= 24:
+            hour = (self.value - 1) % 12 + 1  # Converts 24-hour time to 12-hour
+            period = "AM" if self.value <= 12 else "PM"
+            return f"{hour}:00 {period}"
         else:
             return self.name
         
@@ -278,6 +234,17 @@ class Hours(FroggeEnum):
         ret.append(Hours(1).select_option)
         
         return ret
+    
+################################################################################
+    @property
+    def timestamp(self) -> str:
+        
+        START_TS = -22089600  # (4/20/1969 12:00 AM)
+        STRIDE = 3600
+        
+        ts = START_TS + (self.value - 1) * STRIDE
+    
+        return f"<t:{ts}:t>"
     
 ################################################################################
 class Timezone(FroggeEnum):
@@ -363,53 +330,10 @@ class Timezone(FroggeEnum):
 ################################################################################
     @property
     def description(self) -> str:
-        
-        if self.value == 1:
-            return "(UTC-11:00)"
-        elif self.value == 2:
-            return "(UTC-10:00)"
-        elif self.value == 3:
-            return "(UTC-9:00)"
-        elif self.value == 4:
-            return "(UTC-8:00)"
-        elif self.value == 5:
-            return "(UTC-7:00)"
-        elif self.value == 6:
-            return "(UTC-6:00)"
-        elif self.value == 7:
-            return "(UTC-5:00)"
-        elif self.value == 8:
-            return "(UTC-4:00)"
-        elif self.value == 9:
-            return "(UTC-3:00)"
-        elif self.value == 10:
-            return "(UTC-2:00)"
-        elif self.value == 11:
-            return "(UTC-1:00)"
-        elif self.value == 12:
-            return "(UTC+0:00)"
-        elif self.value == 13:
-            return "(UTC+1:00)"
-        elif self.value == 14:
-            return "(UTC+2:00)"
-        elif self.value == 15:
-            return "(UTC+3:00)"
-        elif self.value == 16:
-            return "(UTC+4:00)"
-        elif self.value == 17:
-            return "(UTC+5:00)"
-        elif self.value == 18:
-            return "(UTC+6:00)"
-        elif self.value == 19:
-            return "(UTC+7:00)"
-        elif self.value == 20:
-            return "(UTC+8:00)"
-        elif self.value == 21:
-            return "(UTC+9:00)"
-        elif self.value == 22:
-            return "(UTC+10:00)"
-        elif self.value == 23:
-            return "(UTC+11:00)"
+    
+        if 1 <= self.value <= 23:
+            offset = self.value - 12
+            return f"(UTC{'+' if offset >= 0 else ''}{offset}:00)"
         else:
             return self.name
     

@@ -1,4 +1,4 @@
-from .CloseMessage import CloseMessageButton
+from .CloseMessage import CloseMessageButton, CloseMessageView
 from .ConfirmCancelView import ConfirmCancelView
 from .Modal import FroggeModal
 from .NameModal import NameModal
