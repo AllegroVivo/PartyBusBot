@@ -4,6 +4,7 @@ from typing import Optional, TYPE_CHECKING
 
 from discord import Attachment, Bot, Interaction, Role, User, TextChannel
 
+from Classes.Jobs import JobManager
 from Classes.Positions import PositionManager
 from Classes.Training import TrainingManager
 from Utils.Database import Database
@@ -21,7 +22,8 @@ class PartyBusBot(Bot):
         "_image_dump",
         "training_manager",
         "position_manager",
-        "database"
+        "database",
+        "_job_manager",
     )
 
 ################################################################################
@@ -35,6 +37,7 @@ class PartyBusBot(Bot):
         
         self.training_manager: TrainingManager = TrainingManager(self)
         self.position_manager: PositionManager = PositionManager(self)
+        self._job_manager: JobManager = JobManager(self)
 
 ################################################################################
     async def load_all(self) -> None:
@@ -117,5 +120,10 @@ class PartyBusBot(Bot):
     async def tuser_config(self, interaction: Interaction) -> None:
         
         await self.training_manager.tuser_config(interaction)
+
+################################################################################
+    async def job_post(self, interaction: Interaction) -> None:
+        
+        await self._job_manager.create_post(interaction)
 
 ################################################################################

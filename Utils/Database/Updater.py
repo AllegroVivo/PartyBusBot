@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Dict
 from .Branch import DBWorkerBranch
 
 if TYPE_CHECKING:
-    from Classes import Position, Trainer, Trainee, Qualification, Training, TUser, SignUpMessage
+    from Classes import Position, Trainer, Trainee, Qualification, Training, TUser, SignUpMessage, Job
     from Utils import RequirementLevel
 ################################################################################
 
@@ -125,6 +125,21 @@ class DatabaseUpdater(DBWorkerBranch):
             )
     
 ################################################################################
+    def update_job(self, job: Job) -> None:
+        
+        with self.database as db:
+            db.execute(
+                "UPDATE jobs SET position = %s, venue = %s, description = %s, "
+                "date = %s, start_time = %s, end_time = %s, pay_rate = %s,"
+                "pay_type = %s, requester = %s, applicant = %s WHERE _id = %s;",
+                (
+                    job.position.id, job.venue, job.description, job.job_date, 
+                    job.start_time, job.end_time, job.pay_rate, job.pay_type.value, 
+                    job.requester.id, job.applicant.id, job.id
+                )
+            )
+            
+################################################################################
     
     position        = update_position
     trainer         = update_trainer
@@ -133,6 +148,7 @@ class DatabaseUpdater(DBWorkerBranch):
     qualification   = update_qualification
     tuser           = update_tuser
     trainer_message = update_trainer_signup_message
+    job             = update_job
     
 ################################################################################
     

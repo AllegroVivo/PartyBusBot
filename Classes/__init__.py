@@ -5,6 +5,7 @@ if TYPE_CHECKING:
     from .Bot import *
     
     # Packages
+    from .Jobs import *
     from .Positions import *
     from .Training import *
 ################################################################################

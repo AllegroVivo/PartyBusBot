@@ -1,12 +1,15 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Optional
+from datetime import date, time
+from typing import TYPE_CHECKING, Optional
+
+from discord import User
 
 from .Branch import DBWorkerBranch
 
 if TYPE_CHECKING:
-    from Classes import Trainee, TimeRange
-    from Utils import Weekday, Hours, Timezone
+    from Classes import Position
+    from Utils import CompensationType
 ################################################################################
 
 __all__ = ("DatabaseInserter",)
@@ -126,8 +129,8 @@ class DatabaseInserter(DBWorkerBranch):
         
         with self.database as db:
             db.execute(
-                "INSERT INTO requirement_overrides (training, requirement, level) "
-                "VALUES (%s, %s, %s);",
+                "INSERT INTO requirement_overrides (training_id, "
+                "requirement_id, level) VALUES (%s, %s, %s);",
                 (training_id, requirement_id, level)
             )
             
@@ -142,6 +145,34 @@ class DatabaseInserter(DBWorkerBranch):
             )
             
 ################################################################################
+    def insert_job(
+        self,
+        position: Position,
+        venue: str,
+        description: Optional[str],
+        _date: date,
+        start: time,
+        end: time,
+        pay: int,
+        pay_type: CompensationType,
+        requester: User,
+        applicant: User
+    ) -> None:
+        
+        new_id = self.generate_id()
+        
+        with self.database as db:
+            db.execute(
+                "INSERT INTO jobs (_id, position, venue, description, date, "
+                "start_time, end_time, pay_rate, pay_type, requester, applicant) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);",
+                (
+                    new_id, position, venue, description, _date, start, end, 
+                    pay, pay_type, requester, applicant
+                 )
+            )
+            
+################################################################################
     
     position                = insert_position
     requirement             = insert_new_requirement
@@ -152,6 +183,7 @@ class DatabaseInserter(DBWorkerBranch):
     training                = insert_new_training
     requirement_override    = insert_requirement_override
     availability            = insert_availability
+    job                     = insert_job
     
 ################################################################################
     

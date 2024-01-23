@@ -14,6 +14,7 @@ class DatabaseBuilder(DBWorkerBranch):
         self.build_positions_tables()
         self.build_training_tables()
         self.build_messages_table()
+        self.build_jobs_table()
         
         print("Database lookin' good!")
         
@@ -52,7 +53,7 @@ class DatabaseBuilder(DBWorkerBranch):
                 "CREATE TABLE IF NOT EXISTS tuser_config ("
                 "user_id BIGINT PRIMARY KEY,"
                 "image_url TEXT,"
-                "job_pings BOOLEAN"
+                "job_pings BOOLEAN DEFAULT TRUE"
                 ");"
             )
             db.execute(
@@ -115,4 +116,24 @@ class DatabaseBuilder(DBWorkerBranch):
                 "ON CONFLICT DO NOTHING;"
             )
             
+################################################################################
+    def build_jobs_table(self) -> None:
+        
+        with self.database as db:
+            db.execute(
+                "CREATE TABLE IF NOT EXISTS jobs ("
+                "_id TEXT PRIMARY KEY,"
+                "position TEXT,"
+                "venue TEXT,"
+                "description TEXT,"
+                "date DATE,"
+                "start_time TIME,"
+                "end_time TIME,"
+                "pay_rate INTEGER,"
+                "pay_type INTEGER,"
+                "requester BIGINT,"
+                "applicant BIGINT"
+                ");"
+            )
+
 ################################################################################
