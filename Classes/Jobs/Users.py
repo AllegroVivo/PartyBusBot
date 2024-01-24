@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from discord import User
 
@@ -20,12 +20,17 @@ class JobUsers:
     )
 
     ################################################################################
-    def __init__(self, parent: Job, requestor: User, applicant: User) -> None:
+    def __init__(
+        self, 
+        parent: Job, 
+        requestor: User,
+        applicant: Optional[User] = None
+    ) -> None:
 
         self._parent: Job = parent
         
         self._requestor: User = requestor
-        self._applicant: User = applicant
+        self._applicant: Optional[User] = applicant
 
 ################################################################################
     @property

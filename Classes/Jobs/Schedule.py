@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from Classes import Job
@@ -20,13 +20,19 @@ class Schedule:
     )
 
 ################################################################################
-    def __init__(self, parent: Job, _date: date, start: time, end: time) -> None:
+    def __init__(
+        self, 
+        parent: Job, 
+        _date: Optional[date] = None,
+        start: Optional[time] = None, 
+        end: Optional[time] = None
+    ) -> None:
             
         self._parent: Job = parent
 
-        self._date: date = _date
-        self._start: time = start
-        self._end: time = end
+        self._date: Optional[date] = _date
+        self._start: Optional[time] = start
+        self._end: Optional[time] = end
         
 ################################################################################
     @property

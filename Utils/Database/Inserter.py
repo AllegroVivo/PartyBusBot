@@ -145,32 +145,17 @@ class DatabaseInserter(DBWorkerBranch):
             )
             
 ################################################################################
-    def insert_job(
-        self,
-        position: Position,
-        venue: str,
-        description: Optional[str],
-        _date: date,
-        start: time,
-        end: time,
-        pay: int,
-        pay_type: CompensationType,
-        requester: User,
-        applicant: User
-    ) -> None:
+    def insert_job(self, requester: int) -> str:
         
         new_id = self.generate_id()
         
         with self.database as db:
             db.execute(
-                "INSERT INTO jobs (_id, position, venue, description, date, "
-                "start_time, end_time, pay_rate, pay_type, requester, applicant) "
-                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);",
-                (
-                    new_id, position, venue, description, _date, start, end, 
-                    pay, pay_type, requester, applicant
-                 )
+                "INSERT INTO jobs (_id, requester) VALUES (%s, %s);",
+                (new_id, requester)
             )
+            
+        return new_id
             
 ################################################################################
     

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from Utils import CompensationType
 
@@ -20,12 +20,17 @@ class Compensation:
     )
     
 ################################################################################
-    def __init__(self, parent: Job, rate: int, type: CompensationType) -> None:
+    def __init__(
+        self, 
+        parent: Job,
+        rate: Optional[int] = None,
+        _type: Optional[CompensationType] = None
+    ) -> None:
         
         self._parent: Job = parent
         
         self._rate: int = rate
-        self._type: CompensationType = type
+        self._type: CompensationType = _type
         
 ################################################################################
     @property

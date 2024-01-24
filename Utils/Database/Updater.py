@@ -131,11 +131,14 @@ class DatabaseUpdater(DBWorkerBranch):
             db.execute(
                 "UPDATE jobs SET position = %s, venue = %s, description = %s, "
                 "date = %s, start_time = %s, end_time = %s, pay_rate = %s,"
-                "pay_type = %s, requester = %s, applicant = %s WHERE _id = %s;",
+                "pay_type = %s, applicant = %s, requester = %s WHERE _id = %s;",
                 (
-                    job.position.id, job.venue, job.description, job.job_date, 
-                    job.start_time, job.end_time, job.pay_rate, job.pay_type.value, 
-                    job.requester.id, job.applicant.id, job.id
+                    job.position.id if job.position is not None else None,
+                    job.venue, job.description, job.job_date, job.start_time, 
+                    job.end_time, job.pay_rate, 
+                    job.pay_type.value if job.pay_type is not None else None,
+                    job.requestor.id, job.applicant.id if job.applicant is not None else None,
+                    job.id
                 )
             )
             
