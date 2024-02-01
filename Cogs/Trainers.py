@@ -28,7 +28,7 @@ class Trainers(Cog):
         name="update_trainee",
         description="Update a trainee's training status."
     )
-    async def trainer_status(
+    async def update_training(
         self, 
         ctx: ApplicationContext,
         user: Option(

@@ -23,7 +23,7 @@ class PartyBusBot(Bot):
         "training_manager",
         "position_manager",
         "database",
-        "_job_manager",
+        "job_manager",
     )
 
 ################################################################################
@@ -37,7 +37,7 @@ class PartyBusBot(Bot):
         
         self.training_manager: TrainingManager = TrainingManager(self)
         self.position_manager: PositionManager = PositionManager(self)
-        self._job_manager: JobManager = JobManager(self)
+        self.job_manager: JobManager = JobManager(self)
 
 ################################################################################
     async def load_all(self) -> None:
@@ -55,6 +55,8 @@ class PartyBusBot(Bot):
         print("Position Manager Loaded!")
         await self.training_manager.load_all(data)
         print("Training Manager Loaded!")
+        await self.job_manager.load_all(data)
+        print("Job Manager Loaded!")
 
         print("Done!")
 
@@ -124,6 +126,6 @@ class PartyBusBot(Bot):
 ################################################################################
     async def job_post(self, interaction: Interaction) -> None:
         
-        await self._job_manager.create_post(interaction)
+        await self.job_manager.create_post(interaction)
 
 ################################################################################

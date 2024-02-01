@@ -29,6 +29,7 @@ class DatabaseLoader(DBWorkerBranch):
             "trainings": self.load_trainings(),
             "requirement_overrides": self.load_requirement_overrides(),
             "messages": self.load_messages(),
+            "jobs": self.load_jobs(),
         }
 
 ################################################################################
@@ -123,4 +124,11 @@ class DatabaseLoader(DBWorkerBranch):
         }
         
 ################################################################################
-            
+    def load_jobs(self) -> Tuple[Tuple[Any, ...], ...]:
+        """Loads all jobs from the database."""
+
+        with self.database as db:
+            db.execute("SELECT * FROM jobs;")
+            return db.fetchall()
+        
+################################################################################

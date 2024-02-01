@@ -13,19 +13,19 @@ if TYPE_CHECKING:
     from Classes import Job
 ################################################################################
 
-__all__ = ("CollectJobDetailsView",)
+__all__ = ("CollectJobScheduleView",)
 
 ################################################################################
-class CollectJobDetailsView(_CollectJobDataView):
+class CollectJobScheduleView(_CollectJobDataView):
     
     def __init__(self, user: User, job: Job) -> None:
         
         super().__init__(user, job)
         
         button_list = [
-            _PositionButton(),
-            _VenueButton(),
-            _DescriptionButton(),
+            _DateButton(),
+            _StartTimeButton(),
+            _EndTimeButton(),
             ContinueButton(),
             CancelButton()
         ]
@@ -34,84 +34,84 @@ class CollectJobDetailsView(_CollectJobDataView):
             self.add_item(button)
             
         self.set_component_properties()
-
+            
 ################################################################################        
     def set_component_properties(self) -> None:
 
         self.children[0].style = (  # type: ignore
-            ButtonStyle.secondary if self.job.position is None else ButtonStyle.primary
+            ButtonStyle.secondary if self.job.job_date is None else ButtonStyle.primary
         )
         self.children[1].style = (  # type: ignore
-            ButtonStyle.secondary if self.job.venue is None else ButtonStyle.primary
+            ButtonStyle.secondary if self.job.start_time is None else ButtonStyle.primary
         )
         self.children[2].style = (  # type: ignore
-            ButtonStyle.secondary if self.job.description is None else ButtonStyle.primary
+            ButtonStyle.secondary if self.job.end_time is None else ButtonStyle.primary
         )
         self.children[3].disabled = (  # type: ignore
-            True if self.job.position is None or self.job.venue is None 
-            else False
+            True if self.job.job_date is None or self.job.start_time is None 
+            or self.job.end_time is None else False
         )
-    
+        
 ################################################################################
-class _PositionButton(Button):
+class _DateButton(Button):
     
     def __init__(self) -> None:
         
         super().__init__(
-            label="Select Job",
+            label="Edit Date",
             disabled=False,
             row=0
         )
         
     async def callback(self, interaction: Interaction) -> None:
-        await self.view.job.details.set_position(interaction)
+        await self.view.job.schedule.set_date(interaction)
         self.view.set_component_properties()
         
         await edit_message_helper(
             interaction=interaction,
-            embed=self.view.job.details_status,
+            embed=self.view.job.schedule_status,
             view=self.view
         )
         
 ################################################################################
-class _VenueButton(Button):
+class _StartTimeButton(Button):
     
     def __init__(self) -> None:
         
         super().__init__(
-            label="Set Venue",
+            label="Set Start Time",
             disabled=False,
             row=0
         )
         
     async def callback(self, interaction: Interaction) -> None:
-        await self.view.job.details.set_venue(interaction)
+        await self.view.job.schedule.set_start_time(interaction)
         self.view.set_component_properties()
         
         await edit_message_helper(
             interaction=interaction,
-            embed=self.view.job.details_status,
+            embed=self.view.job.schedule_status,
             view=self.view
         )
         
 ################################################################################
-class _DescriptionButton(Button):
+class _EndTimeButton(Button):
     
     def __init__(self) -> None:
         
         super().__init__(
-            label="Set Description",
+            label="Set End Time",
             disabled=False,
             row=0
         )
         
     async def callback(self, interaction: Interaction) -> None:
-        await self.view.job.details.set_description(interaction)
+        await self.view.job.schedule.set_end_time(interaction)
         self.view.set_component_properties()
         
         await edit_message_helper(
             interaction=interaction,
-            embed=self.view.job.details_status,
+            embed=self.view.job.schedule_status,
             view=self.view
         )
         

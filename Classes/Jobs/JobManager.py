@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from discord import Interaction
-from typing import TYPE_CHECKING, List, Optional, Tuple
+from typing import TYPE_CHECKING, List, Optional, Any, Dict
 
-from .Job import Job
+from discord import Interaction
 
 from UI import ConfirmCancelView
 from Utils import Utilities as U
+from .Job import Job
 
 if TYPE_CHECKING:
-    from Classes import PartyBusBot, Position
+    from Classes import PartyBusBot
 ################################################################################
 
 __all__ = ("JobManager",)
@@ -29,6 +29,14 @@ class JobManager:
         
         self._jobs: List[Job] = []
         
+################################################################################
+    async def load_all(self, data: Dict[str, Any]):
+        
+        jobs_data = data.get("jobs", [])
+        for job_data in jobs_data:
+            job = await Job.load(self, job_data)
+            self._jobs.append(job)
+
 ################################################################################
     @property
     def bot(self) -> PartyBusBot:
@@ -51,7 +59,9 @@ class JobManager:
         job = Job.new(self, interaction.user)
         self._jobs.append(job)
         
-        await job.get_job_details(interaction)
+        await job.set_job_details(interaction)
+        await job.set_job_schedule(interaction)
+        await job.set_job_compensation(interaction)
 
 ################################################################################
     @staticmethod
@@ -73,7 +83,7 @@ class JobManager:
                 "* `Job Date & Hours`\n"
                 f"{U.draw_line(extra=37)}\n\n"
 
-                "**When you are ready to begin, click the __Create__ button below.**"
+                "**When you are ready to begin, click the __Confirm__ button below.**"
             ),
         )
         view = ConfirmCancelView(interaction.user)
@@ -82,5 +92,5 @@ class JobManager:
         await view.wait()
         
         return view.value
-        
+
 ################################################################################

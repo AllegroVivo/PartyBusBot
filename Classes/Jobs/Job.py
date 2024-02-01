@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from datetime import date, time
-from discord import Interaction, User, Embed
-from typing import TYPE_CHECKING, List, Type, TypeVar, Optional, Tuple
+from discord import Interaction, User, Embed, NotFound, HTTPException
+from typing import TYPE_CHECKING, List, Type, TypeVar, Optional, Tuple, Dict, Any
 
 from .Compensation import Compensation
 from .Details import JobDetails
@@ -65,7 +65,38 @@ class Job:
         self._compensation = Compensation(self)
         
         return self
+    
+################################################################################    
+    @classmethod
+    async def load(cls: Type[J], manager: JobManager, data: Tuple[Any, ...]) -> J:
+
+        requestor = manager.bot.get_user(data[9])
+        applicant = manager.bot.get_user(data[10])
+
+        if requestor is None:
+            try: 
+                requestor = await manager.bot.fetch_user(data[9])
+            except (NotFound, HTTPException):
+                requestor = None
+                
+        if applicant is None:
+            try:
+                applicant = await manager.bot.fetch_user(data[10])
+            except (NotFound, HTTPException):
+                applicant = None
         
+        self: J = cls.__new__(cls)
+        
+        self._id = data[0]
+        self._manager = manager
+        
+        self._users = JobUsers.load(self, requestor, applicant)
+        self._details = JobDetails.load(self, data[1:4])
+        self._schedule = Schedule.load(self, data[4:7])
+        self._compensation = Compensation.load(self, data[7:9])
+        
+        return self
+    
 ################################################################################
     @property
     def bot(self) -> PartyBusBot:
@@ -118,7 +149,7 @@ class Job:
     @property
     def job_date(self) -> Optional[date]:
         
-        return self._schedule.date
+        return self._schedule.job_date
     
 ################################################################################
     @property
@@ -163,13 +194,29 @@ class Job:
         return self._details.status()
 
 ################################################################################
+    @property
+    def schedule_status(self) -> Embed:
+
+        return self._schedule.status()
+    
+################################################################################
     def update(self) -> None:
         
         self.bot.database.update.job(self)
     
 ################################################################################
-    async def get_job_details(self, interaction: Interaction) -> None:
+    async def set_job_details(self, interaction: Interaction) -> None:
         
-        await self._details.collect_all_details(interaction)
+        await self._details.set_all(interaction)
     
+################################################################################
+    async def set_job_schedule(self, interaction: Interaction) -> None:
+        
+        await self._schedule.set_all(interaction)
+        
+################################################################################
+    async def set_job_compensation(self, interaction: Interaction) -> None:
+        
+        await self._compensation.set_all(interaction)
+        
 ################################################################################

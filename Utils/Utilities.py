@@ -1,18 +1,50 @@
 import math
-from datetime import datetime
-from typing import Any, List, Optional, Tuple, Union
+import re
+from datetime import datetime, date, time
+from typing import Any, List, Optional, Tuple, Union, Literal
 
 from discord import Colour, Embed, EmbedField
 
-from .Enums import Hours, Timezone
 from Utils.Colors import CustomColor
+from .Enums import Hours, Timezone
+
 ################################################################################
 
 __all__ = ("Utilities", )
 
+TimestampStyle = Literal["f", "F", "d", "D", "t", "T", "R"]
+
 ################################################################################
 class Utilities:
 
+    TIMEZONE_OFFSETS = {
+        Timezone.MIT: -11,  # Midway Islands Time
+        Timezone.HST: -10,  # Hawaii Standard Time
+        Timezone.AST: -9,   # Alaska Standard Time
+        Timezone.PST: -8,   # Pacific Standard Time
+        Timezone.MST: -7,   # Mountain Standard Time
+        Timezone.CST: -6,   # Central Standard Time
+        Timezone.EST: -5,   # Eastern Standard Time
+        Timezone.PRT: -4,   # Puerto Rico and US Virgin Islands Time
+        Timezone.AGT: -3,   # Argentina Standard Time
+        Timezone.CAT: -2,   # Central African Time
+        Timezone.GMT: 0,    # Greenwich Mean Time
+        Timezone.ECT: 1,    # European Central Time
+        Timezone.EET: 2,    # Eastern European Time
+        Timezone.EAT: 3,    # Eastern African Time
+        Timezone.NET: 4,    # Near East Time
+        Timezone.PLT: 5,    # Pakistan Lahore Time
+        Timezone.BST: 6,    # Bangladesh Standard Time
+        Timezone.VST: 7,    # Vietnam Standard Time
+        Timezone.CTT: 8,    # China Taiwan Time
+        Timezone.JST: 9,    # Japan Standard Time
+        Timezone.AET: 10,   # Australian Eastern Time
+        Timezone.SST: 11,   # Solomon Standard Time
+        Timezone.NST: 12,   # New Zealand Standard Time
+        # Note: Null timezone is omitted
+    }
+    
+################################################################################
     @staticmethod
     def make_embed(
         *,
@@ -198,7 +230,17 @@ class Utilities:
         ret += line.strip()  # Add the last line
 
         return ret
+    
+################################################################################
+    @staticmethod
+    def titleize(text: str) -> str:
 
+        return re.sub(
+            r"[A-Za-z]+('[A-Za-z]+)?",
+            lambda word: word.group(0).capitalize(),
+            text
+        )
+    
 ################################################################################
     @staticmethod
     def try_parse_int(text: str) -> Optional[int]:
@@ -217,8 +259,87 @@ class Utilities:
 
 ################################################################################
     @staticmethod
-    def shift_time(time: Hours, tz: Timezone) -> Hours:
+    def shift_time(_time: time, tz: Timezone) -> time:
+
+        hour = _time.hour
+        tz_offset = Utilities.TIMEZONE_OFFSETS.get(tz)
+        utc_value = hour  # - tz_offset
+
+        if utc_value >= 24:
+            utc_value -= 24
+        elif utc_value < 0:
+            utc_value += 24
+
+        return time(hour=utc_value, minute=_time.minute, second=_time.second)
+    
+################################################################################
+    @staticmethod
+    def time_to_datetime(_time: time) -> datetime:
         
-        pass
+        return datetime(
+            year=2069, 
+            month=4, 
+            day=20, 
+            hour=_time.hour,
+            minute=_time.minute, 
+            second=_time.second
+        )
+    
+################################################################################
+    @staticmethod
+    def date_to_datetime(_date: date) -> datetime:
+        
+        return datetime(
+            year=_date.year, 
+            month=_date.month, 
+            day=_date.day, 
+            hour=0,
+            minute=0, 
+            second=0
+        )
+    
+################################################################################
+    @staticmethod
+    def format_dt(dt: datetime, /, style: TimestampStyle | None = None) -> str:
+        """A helper function to format a :class:`datetime.datetime` for presentation within Discord.
+
+        This allows for a locale-independent way of presenting data using Discord specific Markdown.
+
+        +-------------+----------------------------+-----------------+
+        |    Style    |       Example Output       |   Description   |
+        +=============+============================+=================+
+        | t           | 22:57                      | Short Time      |
+        +-------------+----------------------------+-----------------+
+        | T           | 22:57:58                   | Long Time       |
+        +-------------+----------------------------+-----------------+
+        | d           | 17/05/2016                 | Short Date      |
+        +-------------+----------------------------+-----------------+
+        | D           | 17 May 2016                | Long Date       |
+        +-------------+----------------------------+-----------------+
+        | f (default) | 17 May 2016 22:57          | Short Date Time |
+        +-------------+----------------------------+-----------------+
+        | F           | Tuesday, 17 May 2016 22:57 | Long Date Time  |
+        +-------------+----------------------------+-----------------+
+        | R           | 5 years ago                | Relative Time   |
+        +-------------+----------------------------+-----------------+
+
+        Note that the exact output depends on the user's locale setting in the client. The example output
+        presented is using the ``en-GB`` locale.
+
+        Parameters
+        ----------
+        dt: :class:`datetime.datetime`
+            The datetime to format.
+        style: :class:`str`
+            The style to format the datetime with.
+
+        Returns
+        -------
+        :class:`str`
+            The formatted string.
+        """
+        if style is None:
+            return f"<t:{int(dt.timestamp())}>"
+        return f"<t:{int(dt.timestamp())}:{style}>"
     
 ################################################################################

@@ -27,7 +27,7 @@ class TUserStatusView(FroggeView):
             EditNameButton(),
             ModifyScheduleButton(),
             AddTrainingButton(),
-            RemoveTrainingButton()
+            RemoveTrainingButton(len(self.tuser.trainings) == 0)
         ]
         for btn in button_list:
             self.add_item(btn)
@@ -49,7 +49,7 @@ class TUserAdminStatusView(FroggeView):
             ModifyQualificationButton(),
             RemoveQualificationButton(),
             AddTrainingButton(),
-            RemoveTrainingButton()
+            RemoveTrainingButton(len(self.tuser.trainings) == 0)
         ]
         for btn in button_list:
             self.add_item(btn)
@@ -189,21 +189,31 @@ class AddTrainingButton(Button):
         except AttributeError:
             embed = self.view.tuser.trainee_status()
         
+        self.view.children[5].set_disabled()  # type: ignore
         await edit_message_helper(interaction, embed=embed, view=self.view)
 
 ################################################################################
 class RemoveTrainingButton(Button):
 
-    def __init__(self) -> None:
+    def __init__(self, disabled: bool) -> None:
 
         super().__init__(
             style=ButtonStyle.danger,
             label="Remove Training",
-            row=2
+            row=2,
+            disabled=disabled
         )
 
+    def set_disabled(self) -> None:
+        
+        if len(self.view.tuser.trainings) == 0:
+            self.disabled = True
+        else:
+            self.disabled = False
+        
     async def callback(self, interaction: Interaction) -> None:
         await self.view.tuser.remove_training(interaction)
+        self.set_disabled()
 
         try:
             self.view.set_buttons()

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional, Tuple
+from typing import TYPE_CHECKING, Optional, Tuple, Type, TypeVar, Any
 
 from discord import Interaction, Embed
-from UI import SelectPositionView, CollectJobDetailsView
+from UI import SelectPositionView, CollectJobDetailsView, VenueNameModal, JobDescriptionModal
 from Utils import Utilities as U
 
 if TYPE_CHECKING:
@@ -11,6 +11,8 @@ if TYPE_CHECKING:
 ################################################################################
 
 __all__ = ("JobDetails",)
+
+JD = TypeVar("JD", bound="JobDetails")
 
 ################################################################################
 class JobDetails:
@@ -37,6 +39,13 @@ class JobDetails:
         self._venue: Optional[str] = venue
         self._description: Optional[str] = description
 
+################################################################################
+    @classmethod
+    def load(cls: Type[JD], parent: Job, data: Tuple[Any, ...]) -> JD:
+        
+        position = parent.bot.get_position(data[0])
+        return cls(parent, position, data[1], data[2])
+    
 ################################################################################
     @property
     def position(self) -> Position:
@@ -79,7 +88,7 @@ class JobDetails:
         self._parent.update()
         
 ################################################################################
-    async def collect_all_details(self, interaction: Interaction) -> None:
+    async def set_all(self, interaction: Interaction) -> None:
         
         embed = self.status()
         view = CollectJobDetailsView(interaction.user, self._parent)
@@ -126,4 +135,29 @@ class JobDetails:
         self.position = self._parent.bot.get_position(view.value)
         
 ################################################################################
+    async def set_venue(self, interaction: Interaction) -> None:
         
+        modal = VenueNameModal(self.venue)
+        
+        await interaction.response.send_modal(modal)
+        await modal.wait()
+        
+        if not modal.complete:
+            return
+        
+        self.venue = modal.value
+        
+################################################################################
+    async def set_description(self, interaction: Interaction) -> None:
+        
+        modal = JobDescriptionModal(self.description)
+        
+        await interaction.response.send_modal(modal)
+        await modal.wait()
+        
+        if not modal.complete:
+            return
+        
+        self.description = modal.value
+        
+################################################################################

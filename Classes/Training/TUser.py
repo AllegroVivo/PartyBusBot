@@ -9,8 +9,8 @@ from Classes.Training.Availability import Availability
 from Classes.Training.Training import Training
 from Classes.Training.UserConfig import UserConfiguration
 from UI.Common import NameModal, NotesModal
-from UI import SetScheduleView
-from Utils import Utilities as U
+from UI import TimeSelectView, WeekdaySelectView
+from Utils import Utilities as U, ViewType, Weekday
 
 if TYPE_CHECKING:
     from Classes import PartyBusBot, TrainingManager, Qualification
@@ -198,6 +198,12 @@ class TUser:
         return self._availability
     
 ################################################################################
+    @property
+    def trainings(self) -> List[Training]:
+        
+        return self._manager.get_trainings_by_user(self.user_id)
+    
+################################################################################
     def status(self) -> Embed:
         
         return U.make_embed(
@@ -236,15 +242,11 @@ class TUser:
     def training_requested_field(self) -> EmbedField:        
         
         trainings = self._manager.get_trainings_by_user(self.user_id)
-        
-        if not trainings:
-            training_str = "`None`"
-        else:
-            training_str = ""
+        training_str = "`None`" if not trainings else ""
         
         for t in trainings:
             if training_str == "":
-                training_str = f"* {t.position.name}\n---Trainer: "
+                training_str = f"* {t.position.name}\n-- Trainer: "
                 
             training_str += f"`{t.trainer.name}`\n" if t.trainer else "None... (Yet!)"
             
@@ -309,7 +311,7 @@ class TUser:
         self.name = modal.value
         
 ################################################################################
-    async def edit_notes(self, interaction: Interaction) -> None:
+    async def set_notes(self, interaction: Interaction) -> None:
 
         modal = NotesModal(self._notes)
 
@@ -360,15 +362,69 @@ class TUser:
                 f"{U.draw_line(extra=25)}"
             )
         )
-        view = SetScheduleView(interaction.user)
+        view = WeekdaySelectView(interaction.user)
         
-        await interaction.response.send_message(embed=status, view=view)
+        await interaction.respond(embed=status, view=view)
         await view.wait()
         
         if not view.complete or view.value is False:
             return
         
-        availability = Availability.new(self, view.value)
+        weekday = view.value
+        
+        prompt = U.make_embed(
+            title="Set Availability Start",
+            description=(
+                f"Please select the beginning of your availability for `{weekday.proper_name}`..."
+            )
+        )
+        view = TimeSelectView(interaction.user, ViewType.StartTimeSelect)
+        
+        await interaction.respond(embed=prompt, view=view)
+        await view.wait()
+        
+        if not view.complete or view.value is False:
+            return
+        
+        start_time = view.value if view.value != -1 else None
+        end_time = None
+        
+        if start_time is not None:
+            prompt = U.make_embed(
+                title="Set Availability End",
+                description=(
+                    f"Please select the end of your availability for `{weekday.proper_name}`..."
+                )
+            )
+            view = TimeSelectView(interaction.user, ViewType.EndTimeSelect)
+    
+            await interaction.respond(embed=prompt, view=view)
+            await view.wait()
+    
+            if not view.complete or view.value is False:
+                return
+            
+            end_time = view.value
+            
+        if self.get_availability_for(weekday):
+            self.remove_availability(weekday)
+        
+        availability = Availability.new(self, weekday, start_time, end_time)
         self._availability.append(availability)
         
+################################################################################
+    def get_availability_for(self, day: Weekday) -> Optional[Availability]:
+        
+        for a in self.availability:
+            if a.day == day:
+                return a
+    
+################################################################################
+    def remove_availability(self, day: Weekday) -> None:
+        
+        for a in self.availability:
+            if a.day == day:
+                self._availability.remove(a)
+                a.delete()
+                
 ################################################################################

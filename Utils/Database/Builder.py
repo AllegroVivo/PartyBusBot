@@ -60,8 +60,8 @@ class DatabaseBuilder(DBWorkerBranch):
                 "CREATE TABLE IF NOT EXISTS availability ("
                 "user_id BIGINT,"
                 "day INTEGER,"
-                "start_time INTEGER,"
-                "end_time INTEGER"
+                "start_time TIME,"
+                "end_time TIME"
                 ");"
             )
             db.execute(

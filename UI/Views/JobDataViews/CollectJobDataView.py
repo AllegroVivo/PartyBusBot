@@ -19,11 +19,11 @@ class _CollectJobDataView(FroggeView):
     
     def __init__(self, user: User, job: Job) -> None:
         
-        super().__init__(user)
+        super().__init__(user, close_on_complete=True)
         self.job: Job = job
 
 ################################################################################        
-    def set_style(self) -> None:
+    def set_component_properties(self) -> None:
          
         raise NotImplementedError
     

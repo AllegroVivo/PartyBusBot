@@ -34,7 +34,7 @@ class Positions(Cog):
         ctx: ApplicationContext,
         position_name: Option(
             type=SlashCommandOptionType.string,
-            name="position_name",
+            name="name",
             description="The name of the position to add.",
             required=True
         )

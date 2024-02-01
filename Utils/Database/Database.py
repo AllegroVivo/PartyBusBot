@@ -95,7 +95,7 @@ class Database:
 
         try:
             self._cursor.close()
-        except:
+        except InterfaceError:
             pass
 
 ################################################################################

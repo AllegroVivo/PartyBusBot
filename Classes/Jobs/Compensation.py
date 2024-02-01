@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Any, Tuple
 
-from Utils import CompensationType
+from discord import Interaction, Embed
+
+from Utils import Utilities as U, CompensationType
 
 if TYPE_CHECKING:
     from Classes import Job
@@ -33,6 +35,12 @@ class Compensation:
         self._type: CompensationType = _type
         
 ################################################################################
+    @classmethod
+    def load(cls, parent: Job, data: Tuple[Any, ...]) -> Compensation:
+        
+        return cls(parent, data[0], CompensationType(data[1]) if data[1] else None)
+    
+################################################################################
     @property
     def pay_rate(self) -> int:
         
@@ -61,4 +69,28 @@ class Compensation:
         
         self._parent.update()
         
+################################################################################
+    def status(self) -> Embed:
+
+        return U.make_embed(
+            title="Job Compensation",
+            description=(
+                "Finally, we just need to know how much you'll be paying:\n\n"
+                
+                "**Compensation:** "
+                f"{U.draw_line(extra=25)}\n\n"
+
+                "Please complete the above details to finish your post."
+            ),
+        )
+    
+################################################################################
+    async def set_all(self, interaction: Interaction) -> None:
+
+        embed = self.status()
+        view = CollectJobCompensationView(interaction.user, self._parent)
+
+        await interaction.respond(embed=embed, view=view)
+        await view.wait()
+
 ################################################################################

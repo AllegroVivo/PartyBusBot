@@ -13,10 +13,10 @@ if TYPE_CHECKING:
     from Classes import Job
 ################################################################################
 
-__all__ = ("CollectJobDetailsView",)
+__all__ = ("CollectJobCompensationView",)
 
 ################################################################################
-class CollectJobDetailsView(_CollectJobDataView):
+class CollectJobCompensationView(_CollectJobDataView):
     
     def __init__(self, user: User, job: Job) -> None:
         

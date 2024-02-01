@@ -19,7 +19,7 @@ class JobUsers:
         "_applicant",
     )
 
-    ################################################################################
+################################################################################
     def __init__(
         self, 
         parent: Job, 
@@ -32,6 +32,12 @@ class JobUsers:
         self._requestor: User = requestor
         self._applicant: Optional[User] = applicant
 
+################################################################################
+    @classmethod
+    def load(cls, parent: Job, requestor: User, applicant: Optional[User] = None) -> JobUsers:
+        
+        return cls(parent, requestor, applicant)
+    
 ################################################################################
     @property
     def requestor(self) -> User:

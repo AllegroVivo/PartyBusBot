@@ -22,5 +22,6 @@ class BotEmojis:
     Scroll = PartialEmoji.from_str("📜")
     Sleep = PartialEmoji.from_str("💤")
     Stopwatch = PartialEmoji.from_str("⏱️")
+    ThumbsUp = PartialEmoji.from_str("👍")
 
 ################################################################################

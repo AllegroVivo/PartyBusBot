@@ -27,10 +27,28 @@ class Admin(Cog):
     
 ################################################################################
     @admin.command(
+        name="add_trainer",
+        description="Add a user as a trainer."
+    )
+    async def add_trainer(
+        self,
+        ctx: ApplicationContext,
+        user: Option(
+            SlashCommandOptionType.user,
+            name="user",
+            description="The user to add as a trainer.",
+            required=True
+        )
+    ) -> None:
+
+        await self.bot.tuser_admin_status(ctx.interaction, user)
+        
+################################################################################
+    @admin.command(
         name="user_status",
         description="View and edit the trainer/trainee profile & status of a user."
     )
-    async def trainer_status(
+    async def user_status(
         self, 
         ctx: ApplicationContext,
         user: Option(
@@ -70,12 +88,11 @@ class Admin(Cog):
         
         await self.bot.manage_trainers(ctx.interaction)
         
+################################################################################        
     @admin.command(name="test")
     async def test(self, ctx: ApplicationContext) -> None:
         
-        await ctx.respond(Hours(4).timestamp())
-        await ctx.respond(Hours(10).timestamp())
-        await ctx.respond(Hours(17).timestamp())
+        await self.bot.job_manager.create_post(ctx.interaction)
         
 ################################################################################
 def setup(bot: "PartyBusBot") -> None:

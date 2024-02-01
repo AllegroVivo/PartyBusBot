@@ -135,7 +135,7 @@ class DatabaseInserter(DBWorkerBranch):
             )
             
 ################################################################################
-    def insert_availability(self, user_id: int, day: int, start: int, end: Optional[int]) -> None:
+    def insert_availability(self, user_id: int, day: int, start: time, end: Optional[time]) -> None:
         
         with self.database as db:
             db.execute(
@@ -149,11 +149,11 @@ class DatabaseInserter(DBWorkerBranch):
         
         new_id = self.generate_id()
         
-        with self.database as db:
-            db.execute(
-                "INSERT INTO jobs (_id, requester) VALUES (%s, %s);",
-                (new_id, requester)
-            )
+        # with self.database as db:
+        #     db.execute(
+        #         "INSERT INTO jobs (_id, requester) VALUES (%s, %s);",
+        #         (new_id, requester)
+        #     )
             
         return new_id
             

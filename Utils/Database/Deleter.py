@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Dict
 from .Branch import DBWorkerBranch
 
 if TYPE_CHECKING:
-    from Classes import Requirement, Training, Qualification
+    from Classes import Requirement, Training, Qualification, Availability
     from Utils import RequirementLevel
 ################################################################################
 
@@ -40,8 +40,8 @@ class DatabaseDeleter(DBWorkerBranch):
         with self.database as db:
             for req_id, _ in overrides.items():
                 db.execute(
-                    "DELETE FROM requirement_overrides WHERE training = %s "
-                    "AND requirement = %s;",
+                    "DELETE FROM requirement_overrides WHERE training_id = %s "
+                    "AND requirement_id = %s;",
                     (training_id, req_id)
                 )
     
@@ -53,11 +53,21 @@ class DatabaseDeleter(DBWorkerBranch):
                 "DELETE FROM qualifications WHERE _id = %s;",
                 (qualification.id,)
             )
-            
+    
+################################################################################        
+    def delete_availability(self, availability: Availability) -> None:
+        
+        with self.database as db:
+            db.execute(
+                "DELETE FROM availability WHERE user_id = %s AND day = %s;",
+                (availability.parent.user_id, availability.day.value)
+            )
+    
 ################################################################################
 
     requirement     = delete_requirement
     training        = delete_training
     qualification   = delete_qualification
+    availability    = delete_availability
 
 ################################################################################

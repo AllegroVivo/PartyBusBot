@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from datetime import time
 from typing import TYPE_CHECKING, List, Type, TypeVar, Any, Tuple
 
-from Utils import Weekday, Hours
+from Utils import Utilities as U, Weekday, Hours
 
 if TYPE_CHECKING:
     from Classes import PartyBusBot, TUser
@@ -23,25 +24,20 @@ class Availability:
     )
     
 ################################################################################
-    def __init__(self, parent: TUser, day: Weekday, start: Hours, end: Hours) -> None:
+    def __init__(self, parent: TUser, day: Weekday, start: time, end: time) -> None:
         
         self._parent: TUser = parent
         
         self._day: Weekday = day
-        self._start: Hours = start
-        self._end: Hours = end        
+        self._start: time = start
+        self._end: time = end        
         
 ################################################################################
     @classmethod
-    def new(cls, parent: TUser, data: Tuple[Any, ...]) -> A:
+    def new(cls, parent: TUser, day: Weekday, start: time, end: time) -> A:
         
-        parent.bot.database.insert.availability(parent.user_id, *data)
-        return cls(
-            parent,
-            Weekday(data[0]),
-            Hours(data[1]),
-            Hours(data[2]) if data[2] is not None else None
-        )
+        parent.bot.database.insert.availability(parent.user_id, day.value, start, end)
+        return cls(parent, day, start, end)
     
 ################################################################################
     @classmethod
@@ -50,9 +46,15 @@ class Availability:
         return cls(
             parent,
             Weekday(data[1]),
-            Hours(data[2]),
-            Hours(data[3]) if data[3] is not None else None
+            data[2],
+            data[3]
         )
+    
+################################################################################
+    @property
+    def parent(self) -> TUser:
+        
+        return self._parent
     
 ################################################################################
     @property
@@ -62,13 +64,13 @@ class Availability:
     
 ################################################################################
     @property
-    def start_time(self) -> Hours:
+    def start_time(self) -> time:
         
         return self._start
     
 ################################################################################
     @property
-    def end_time(self) -> Hours:
+    def end_time(self) -> time:
         
         return self._end
     
@@ -76,13 +78,13 @@ class Availability:
     @property
     def start_timestamp(self) -> str:
         
-        return self._start.timestamp
+        return U.format_dt(U.time_to_datetime(self._start), "t")
     
 ################################################################################
     @property
     def end_timestamp(self) -> str:
-        
-        return self._end.timestamp
+
+        return U.format_dt(U.time_to_datetime(self._end), "t")
     
 ################################################################################
     @staticmethod
@@ -106,4 +108,9 @@ class Availability:
         return ret
     
 ################################################################################
-    
+    def delete(self) -> None:
+        
+        self._parent.bot.database.delete.availability(self)
+        
+################################################################################
+        

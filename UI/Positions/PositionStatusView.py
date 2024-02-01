@@ -31,6 +31,16 @@ class PositionStatusView(FroggeView):
         for btn in button_list:
             self.add_item(btn)
         
+################################################################################        
+    def set_button_style(self) -> None:
+        
+        if len(self.position.requirements) > 0:
+            self.children[4].style = ButtonStyle.danger  # type: ignore
+            self.children[4].disabled = False  # type: ignore
+        else:
+            self.children[4].style = ButtonStyle.secondary  # type: ignore
+            self.children[4].disabled = True  # type: ignore
+            
 ################################################################################
 class PositionNameButton(Button):
     
@@ -79,6 +89,8 @@ class PositionAddReqButton(Button):
         
     async def callback(self, interaction: Interaction):
         await self.view.position.add_requirement(interaction)
+        self.view.set_button_style()
+        
         await interaction.edit(embed=self.view.position.status(), view=self.view)
         
 ################################################################################
@@ -87,7 +99,7 @@ class PositionRemoveReqButton(Button):
     def __init__(self):
         
         super().__init__(
-            style=ButtonStyle.secondary,
+            style=ButtonStyle.danger,
             label="Remove Requirement",
             disabled=False,
             row=1
@@ -95,6 +107,8 @@ class PositionRemoveReqButton(Button):
         
     async def callback(self, interaction: Interaction):
         await self.view.position.remove_requirement(interaction)
+        self.view.set_button_style()
+        
         await edit_message_helper(
             interaction, embed=self.view.position.status(), view=self.view
         )

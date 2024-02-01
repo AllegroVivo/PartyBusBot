@@ -156,7 +156,10 @@ class PositionManager:
             fields=[
                 EmbedField(
                     name="__Current Registered Jobs__",
-                    value="* " + "\n* ".join([p.name for p in self.positions]) or "None",
+                    value=(
+                        "* " + "\n* ".join([p.name for p in self.positions])
+                        if self.positions else "`None`"
+                    ),
                     inline=False
                 )
             ]

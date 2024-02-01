@@ -7,10 +7,11 @@ from .RemoveQualificationView import RemoveQualificationView
 from .RemoveTrainerSelectView import RemoveTrainerSelectView
 from .RemoveTrainingView import RemoveTrainingView
 from .SelectPositionView import SelectPositionView
-from .SetScheduleView import SetScheduleView
+from .TimeSelectView import TimeSelectView
 from .TrainerAssignmentStatusView import TrainerAssignmentStatusView
 from .TrainerMessageSelectView import TrainerMessageSelectView
 from .TUserConfigView import TUserConfigView
 from .TUserStatusView import TUserAdminStatusView, TUserStatusView
 from .UpdateTrainingView import UpdateTrainingView
+from .WeekdaySelectView import WeekdaySelectView
 ################################################################################
