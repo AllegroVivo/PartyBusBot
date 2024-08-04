@@ -9,7 +9,7 @@ from Classes.Bot import PartyBusBot
 ################################################################################
 
 load_dotenv()
-debug_guilds = [955933227372122173] if os.getenv("DEBUG") else None
+debug_guilds = [955933227372122173] if os.getenv("DEBUG") == "True" else None
 
 bot = PartyBusBot(
     description="Toot toot, bitches!",
