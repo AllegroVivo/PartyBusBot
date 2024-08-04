@@ -8,10 +8,13 @@ from dotenv import load_dotenv
 from Classes.Bot import PartyBusBot
 ################################################################################
 
+load_dotenv()
+debug_guilds = [955933227372122173] if os.getenv("DEBUG") else None
+
 bot = PartyBusBot(
     description="Toot toot, bitches!",
-    intents=Intents.default(),
-    debug_guilds=[303742308874977280, 955933227372122173]  # , 1104515062187708525]
+    intents=Intents.all(),
+    debug_guilds=debug_guilds
 )
 
 ################################################################################
@@ -23,7 +26,6 @@ for filename in os.listdir("Cogs"):
 ################################################################################
 
 load_dotenv()
-
 bot.run(os.getenv("DISCORD_TOKEN"))
 
 ################################################################################
